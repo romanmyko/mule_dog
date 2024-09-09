@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="space-x-system-api-test-suite.xml" />
+	<http:request-config name="HTTP_Request_test_configuration" doc:name="HTTP Request configuration" doc:id="0a286ddf-9cdb-4d91-9c0c-1de76a3715f6" basePath="${test.path}" >
+		<http:request-connection host="${http.host}" port="${http.port}" />
+	</http:request-config>
+	<munit:test name="get-launchpads-flow-test" doc:id="0e40910a-1989-4daa-9cf4-8d87dde44e0c" description="Test Get Launchpad Flow">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launchpads:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f1fd8692-6833-46a9-af38-b623d86b799b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="9e19362b-95a2-4652-b4f9-4bd32fb5c880" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-launchpads.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="Request GET /launchpads" doc:id="65e668c9-f9af-4181-be59-a11333092da5" config-ref="HTTP_Request_test_configuration" path="${launchpads.endpoint}" >
+			</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="0b54e562-6733-4180-90f2-c4ecc640a670" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="0353c8f9-ddb8-4fbe-be20-a683431fd75f" expression="#[payload]" is='#[MunitTools::equalTo([&#10;    {&#10;        "name": "VAFB SLC 4E",&#10;        "full_name": "Vandenberg Air Force Base Space Launch Complex 4E",&#10;        "locality": "Vandenberg Air Force Base",&#10;        "region": "California",&#10;        "timezone": "America/Los_Angeles",&#10;        "latitude": 34.632093,&#10;        "longitude": -120.610829,&#10;        "launch_attempts": 15,&#10;        "launch_successes": 15,&#10;        "rockets": [&#10;            "5e9d0d95eda69973a809d1ec"&#10;        ],&#10;        "launches": [&#10;            "5eb87ce1ffd86e000604b334",&#10;            "5eb87cf0ffd86e000604b343",&#10;            "5eb87cfdffd86e000604b34c",&#10;            "5eb87d05ffd86e000604b354",&#10;            "5eb87d08ffd86e000604b357",&#10;            "5eb87d0affd86e000604b359",&#10;            "5eb87d0fffd86e000604b35d",&#10;            "5eb87d14ffd86e000604b361",&#10;            "5eb87d16ffd86e000604b363",&#10;            "5eb87d1affd86e000604b367",&#10;            "5eb87d1fffd86e000604b36b",&#10;            "5eb87d23ffd86e000604b36e",&#10;            "5eb87d25ffd86e000604b370",&#10;            "5eb87d28ffd86e000604b373",&#10;            "5eb87d31ffd86e000604b379"&#10;        ],&#10;        "status": "active",&#10;        "id": "5e9e4502f509092b78566f87"&#10;    },&#10;    {&#10;    "name": "VAFB SLC 3W",&#10;    "full_name": "Vandenberg Space Force Base Space Launch Complex 3W",&#10;    "locality": "Vandenberg Space Force Base",&#10;    "region": "California",&#10;    "timezone": "America/Los_Angeles",&#10;    "latitude": 34.6440904,&#10;    "longitude": -120.5931438,&#10;    "launch_attempts": 0,&#10;    "launch_successes": 0,&#10;    "rockets": [&#10;      "5e9d0d95eda69955f709d1eb"&#10;    ],&#10;    "launches": [],&#10;    "status": "retired",&#10;    "id": "5e9e4501f5090910d4566f83"&#10;  }&#10;])]' />
+		
+</munit:validation>
+	</munit:test>
+	<munit:test name="get-launchpad-by-id-flow-test" doc:id="5c0d8295-e267-4731-87c6-4f4d45fd7001" description="Test Get Launchpad by ID Flow">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launchpads\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="278a2194-0829-45cf-b4cd-3982c8d81999" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="273f8b77-95e9-40fa-9d59-3b1f38f6831f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-launchpad-id.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="Request GET /launchpads/{id}" doc:id="4c9be6c5-4a62-42c0-ba37-398d396b24d1" config-ref="HTTP_Request_test_configuration" path="${launchpads.endpoint}/{id}" >
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : '5e9e4502f509092b78566f87'
+}]]]></http:uri-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="9de3a500-fbc5-460f-a2a1-5ccf42219fc3" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="3c453b98-aecf-40b8-bb2a-3d0d3acd9be1" expression="#[payload]" is='#[MunitTools::equalTo({&#10;    "name": "VAFB SLC 4E",&#10;    "full_name": "Vandenberg Air Force Base Space Launch Complex 4E",&#10;    "locality": "Vandenberg Air Force Base",&#10;    "region": "California",&#10;    "timezone": "America/Los_Angeles",&#10;    "latitude": 34.632093,&#10;    "longitude": -120.610829,&#10;    "launch_attempts": 15,&#10;    "launch_successes": 15,&#10;    "rockets": [&#10;        "5e9d0d95eda69973a809d1ec"&#10;    ],&#10;    "launches": [&#10;        "5eb87ce1ffd86e000604b334",&#10;        "5eb87cf0ffd86e000604b343",&#10;        "5eb87cfdffd86e000604b34c",&#10;        "5eb87d05ffd86e000604b354",&#10;        "5eb87d08ffd86e000604b357",&#10;        "5eb87d0affd86e000604b359",&#10;        "5eb87d0fffd86e000604b35d",&#10;        "5eb87d14ffd86e000604b361",&#10;        "5eb87d16ffd86e000604b363",&#10;        "5eb87d1affd86e000604b367",&#10;        "5eb87d1fffd86e000604b36b",&#10;        "5eb87d23ffd86e000604b36e",&#10;        "5eb87d25ffd86e000604b370",&#10;        "5eb87d28ffd86e000604b373",&#10;        "5eb87d31ffd86e000604b379"&#10;    ],&#10;    "status": "active",&#10;    "id": "5e9e4502f509092b78566f87"&#10;})]' />
+		
+</munit:validation>
+	</munit:test>
+	<munit:test name="get-launchpad-by-id-flow-test-null" doc:id="3a33df32-73e1-4581-a4ce-6ae70373a68b">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launchpads\(id):space-x-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="8a899565-6d7e-462b-9956-485fdeb69fb3" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="273f8b77-95e9-40fa-9d59-3b1f38f6831f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request GET /launchpads/{id}" doc:id="e3c6f494-b2ba-4f07-8dd9-e5f0d8c59abf" config-ref="HTTP_Request_test_configuration" path="${launchpads.endpoint}/{id}">
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : '5e9e4502f509092b78566f87'
+}]]]></http:uri-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 204" doc:id="229318c5-c07d-4b26-97c2-3ed7b64c6a81" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(204)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-core-by-id-flow-test" doc:id="4e73c0cf-bc7f-4ad7-a2ac-f24f96b891b6" description="Test Get Core by ID Flow">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\cores\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="e6bba2c0-2de7-407b-9f92-851ed9b7e29c" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e7ad58d5-51fc-4b0d-82ca-931324741197" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-core-id.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;	"statusCode": "200"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		
+</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="Request GET /cores/{id}" doc:id="83197a7b-ed2d-4956-a257-2eace7bb4151" config-ref="HTTP_Request_test_configuration" path="${cores.endpoint}/{id}" >
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : '5e9e28a6f35918c0803b265c'
+}]]]></http:uri-params>
+			</http:request>
+		
+</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="13b7fc52-30fe-42dc-a754-6e3fba4960eb" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="2add13b8-572d-4108-a3d4-d109a84c1234" expression="#[payload]" is='#[MunitTools::equalTo({&#10;    "block": 5,&#10;    "reuse_count": 3,&#10;    "rtls_attempts": 1,&#10;    "rtls_landings": 1,&#10;    "asds_attempts": 3,&#10;    "asds_landings": 3,&#10;    "last_update": "Landed on OCISLY as of Jan 29, 2020. ",&#10;    "launches": [&#10;        "5eb87d2bffd86e000604b375",&#10;        "5eb87d31ffd86e000604b379",&#10;        "5eb87d3fffd86e000604b382",&#10;        "5eb87d44ffd86e000604b386"&#10;    ],&#10;    "serial": "B1051",&#10;    "status": "active",&#10;    "id": "5e9e28a6f35918c0803b265c"&#10;})]' />
+		
+</munit:validation>
+	</munit:test>
+	<munit:test name="get-core-by-id-flow-test-null" doc:id="94410800-0e41-4b2a-be7d-2ed040a74ea2">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\cores\(id):space-x-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="e61ba9de-484c-4a5a-b793-d39ce2d4496a" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e7ad58d5-51fc-4b0d-82ca-931324741197" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request GET /cores/{id}" doc:id="82ff5f06-2467-4d67-92c2-29e5343f18a4" config-ref="HTTP_Request_test_configuration" path="${cores.endpoint}/{id}">
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : '5e9e28a6f35918c0803b265c'
+}]]]></http:uri-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 204" doc:id="37b08477-991e-40f1-b120-e8b69bd77519" is="#[MunitTools::equalTo(204)]" expression="#[attributes.statusCode]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-cores-flow-test" doc:id="3564cdb4-8c63-4119-b9ae-8889c363566a" description="Test Get Launchpad Flow">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\cores:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7ed274d1-2c5e-471d-bcc8-69483c4140d0" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d7aff9f4-9ea4-484d-a422-814cd4f09ca7" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-cores.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request GET /cores" doc:id="30ae3cd6-2479-4eb3-a44f-614954cc1d1a" config-ref="HTTP_Request_test_configuration" path="${cores.endpoint}" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="3b47360f-136e-4f4b-8e59-52102b2cceb4" message="The HTTP Status code is not correct!" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]" />
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="99818f1c-0e4a-4908-bf8a-3693b1289ac0" expression="#[payload]" is='#[MunitTools::equalTo([&#10;    {&#10;        "block": 5,&#10;        "reuse_count": 3,&#10;        "rtls_attempts": 1,&#10;        "rtls_landings": 1,&#10;        "asds_attempts": 3,&#10;        "asds_landings": 3,&#10;        "last_update": "Landed on OCISLY as of Jan 29, 2020. ",&#10;        "launches": [&#10;            "5eb87d2bffd86e000604b375",&#10;            "5eb87d31ffd86e000604b379",&#10;            "5eb87d3fffd86e000604b382",&#10;            "5eb87d44ffd86e000604b386"&#10;        ],&#10;        "serial": "B1051",&#10;        "status": "active",&#10;        "id": "5e9e28a6f35918c0803b265c"&#10;    }&#10;])]' />
+		</munit:validation>
+	</munit:test>
+		<munit:test name="get-all-rockets-suiteTest" doc:id="b4b917a5-85ea-4f6c-853d-37353e7e6b75">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\rockets:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="GET /rockets" doc:id="759d76da-f13f-4d3b-8553-ba3c5caad70c" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="1635a848-7c0e-4801-a5ad-45185a7ecf89" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-rockets.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request GET /rockets" doc:id="838748b2-99b5-49be-9f92-60fd29e61afc" path="${rockets.endpoint}" config-ref="HTTP_Request_test_configuration"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="5df9bfd4-fbb6-4aae-b405-d55abbf15430" expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="894285fc-2490-4101-aa18-2a13fdfa3a25" is='#[MunitTools::equalTo(&#10;	[&#10;  {&#10;    "height": {&#10;      "meters": 70,&#10;      "feet": 229.6&#10;    },&#10;    "diameter": {&#10;      "meters": 12.2,&#10;      "feet": 39.9&#10;    },&#10;    "mass": {&#10;      "kg": 1420788,&#10;      "lb": 3125735&#10;    },&#10;    "first_stage": {&#10;      "thrust_sea_level": {&#10;        "kN": 22819,&#10;        "lbf": 5130000&#10;      },&#10;      "thrust_vacuum": {&#10;        "kN": 24681,&#10;        "lbf": 5548500&#10;      },&#10;      "reusable": true,&#10;      "engines": 27,&#10;      "fuel_amount_tons": 1155,&#10;      "burn_time_sec": 162&#10;    },&#10;    "second_stage": {&#10;      "thrust": {&#10;        "kN": 934,&#10;        "lbf": 210000&#10;      },&#10;      "payloads": {&#10;        "composite_fairing": {&#10;          "height": {&#10;            "meters": 13.1,&#10;            "feet": 43&#10;          },&#10;          "diameter": {&#10;            "meters": 5.2,&#10;            "feet": 17.1&#10;          }&#10;        },&#10;        "option_1": "dragon"&#10;      },&#10;      "reusable": false,&#10;      "engines": 1,&#10;      "fuel_amount_tons": 90,&#10;      "burn_time_sec": 397&#10;    },&#10;    "engines": {&#10;      "isp": {&#10;        "sea_level": 288,&#10;        "vacuum": 312&#10;      },&#10;      "thrust_sea_level": {&#10;        "kN": 845,&#10;        "lbf": 190000&#10;      },&#10;      "thrust_vacuum": {&#10;        "kN": 914,&#10;        "lbf": 205500&#10;      },&#10;      "number": 27,&#10;      "type": "merlin",&#10;      "version": "1D+",&#10;      "layout": "octaweb",&#10;      "engine_loss_max": 6,&#10;      "propellant_1": "liquid oxygen",&#10;      "propellant_2": "RP-1 kerosene",&#10;      "thrust_to_weight": 180.1&#10;    },&#10;    "landing_legs": {&#10;      "number": 12,&#10;      "material": "carbon fiber"&#10;    },&#10;    "payload_weights": [&#10;      {&#10;        "id": "leo",&#10;        "name": "Low Earth Orbit",&#10;        "kg": 63800,&#10;        "lb": 140660&#10;      },&#10;      {&#10;        "id": "gto",&#10;        "name": "Geosynchronous Transfer Orbit",&#10;        "kg": 26700,&#10;        "lb": 58860&#10;      },&#10;      {&#10;        "id": "mars",&#10;        "name": "Mars Orbit",&#10;        "kg": 16800,&#10;        "lb": 37040&#10;      },&#10;      {&#10;        "id": "pluto",&#10;        "name": "Pluto Orbit",&#10;        "kg": 3500,&#10;        "lb": 7720&#10;      }&#10;    ],&#10;    "flickr_images": [&#10;      "https://farm5.staticflickr.com/4599/38583829295_581f34dd84_b.jpg",&#10;      "https://farm5.staticflickr.com/4645/38583830575_3f0f7215e6_b.jpg",&#10;      "https://farm5.staticflickr.com/4696/40126460511_b15bf84c85_b.jpg",&#10;      "https://farm5.staticflickr.com/4711/40126461411_aabc643fd8_b.jpg"&#10;    ],&#10;    "name": "Falcon Heavy",&#10;    "type": "rocket",&#10;    "active": true,&#10;    "stages": 2,&#10;    "boosters": 2,&#10;    "cost_per_launch": 90000000,&#10;    "success_rate_pct": 100,&#10;    "first_flight": "2018-02-06",&#10;    "country": "United States",&#10;    "company": "SpaceX",&#10;    "wikipedia": "https://en.wikipedia.org/wiki/Falcon_Heavy",&#10;    "description": "With the ability to lift into orbit over 54 metric tons (119,000 lb)--a mass equivalent to a 737 jetliner loaded with passengers, crew, luggage and fuel--Falcon Heavy can lift more than twice the payload of the next closest operational vehicle, the Delta IV Heavy, at one-third the cost.",&#10;    "id": "5e9d0d95eda69974db09d1ed"&#10;  }&#10;]&#10;)]' expression="#[payload]"/>
+		
+</munit:validation>
+	</munit:test>
+	<munit:test name="get-rocket-by-id-flow-test-null" doc:id="2e3e10bd-f449-4d37-9cb7-db09e3298915">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\rockets\(id):space-x-system-api-config" />
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\rockets\(id):space-x-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a1eb1577-2bae-41f1-b84a-cdaa7b1ff131" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="938e63cc-358a-4617-aa5b-7af9d1021fca" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="Request GET /rockets/{id}" doc:id="1c28b89b-ea2e-4674-882b-cf160663e73a" config-ref="HTTP_Request_test_configuration" path="/rockets/5e9d0d95eda69973a809d1ec" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 204" doc:id="d57aa807-1508-4384-b084-e4cc7444b0db" is="#[MunitTools::equalTo(204)]" expression="#[attributes.statusCode]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-rocket-by-id-suiteTest" doc:id="6c418074-4311-4f13-be3a-9c9f879e37e9">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\rockets\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="GET /rockets/{id}" doc:id="8dd8e893-2382-4077-be56-f30b033721b9" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="938e63cc-358a-4617-aa5b-7af9d1021fca" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-rocket-id.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request GET /rockets/{id}" doc:id="e05b1c6a-2b50-47a2-b764-fcb43f8d2dca" config-ref="HTTP_Request_test_configuration" path="/rockets/5e9d0d95eda69973a809d1ec">
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="b75e689b-0bcb-4578-ba24-8d205b4f1377" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]"/>
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="397cdeca-7cab-44ee-bb88-7bc293a8b068" is='#[MunitTools::equalTo(&#10;	{&#10;    "height": {&#10;      "meters": 70,&#10;      "feet": 229.6&#10;    },&#10;    "diameter": {&#10;      "meters": 12.2,&#10;      "feet": 39.9&#10;    },&#10;    "mass": {&#10;      "kg": 1420788,&#10;      "lb": 3125735&#10;    },&#10;    "first_stage": {&#10;      "thrust_sea_level": {&#10;        "kN": 22819,&#10;        "lbf": 5130000&#10;      },&#10;      "thrust_vacuum": {&#10;        "kN": 24681,&#10;        "lbf": 5548500&#10;      },&#10;      "reusable": true,&#10;      "engines": 27,&#10;      "fuel_amount_tons": 1155,&#10;      "burn_time_sec": 162&#10;    },&#10;    "second_stage": {&#10;      "thrust": {&#10;        "kN": 934,&#10;        "lbf": 210000&#10;      },&#10;      "payloads": {&#10;        "composite_fairing": {&#10;          "height": {&#10;            "meters": 13.1,&#10;            "feet": 43&#10;          },&#10;          "diameter": {&#10;            "meters": 5.2,&#10;            "feet": 17.1&#10;          }&#10;        },&#10;        "option_1": "dragon"&#10;      },&#10;      "reusable": false,&#10;      "engines": 1,&#10;      "fuel_amount_tons": 90,&#10;      "burn_time_sec": 397&#10;    },&#10;    "engines": {&#10;      "isp": {&#10;        "sea_level": 288,&#10;        "vacuum": 312&#10;      },&#10;      "thrust_sea_level": {&#10;        "kN": 845,&#10;        "lbf": 190000&#10;      },&#10;      "thrust_vacuum": {&#10;        "kN": 914,&#10;        "lbf": 205500&#10;      },&#10;      "number": 27,&#10;      "type": "merlin",&#10;      "version": "1D+",&#10;      "layout": "octaweb",&#10;      "engine_loss_max": 6,&#10;      "propellant_1": "liquid oxygen",&#10;      "propellant_2": "RP-1 kerosene",&#10;      "thrust_to_weight": 180.1&#10;    },&#10;    "landing_legs": {&#10;      "number": 12,&#10;      "material": "carbon fiber"&#10;    },&#10;    "payload_weights": [&#10;      {&#10;        "id": "leo",&#10;        "name": "Low Earth Orbit",&#10;        "kg": 63800,&#10;        "lb": 140660&#10;      },&#10;      {&#10;        "id": "gto",&#10;        "name": "Geosynchronous Transfer Orbit",&#10;        "kg": 26700,&#10;        "lb": 58860&#10;      },&#10;      {&#10;        "id": "mars",&#10;        "name": "Mars Orbit",&#10;        "kg": 16800,&#10;        "lb": 37040&#10;      },&#10;      {&#10;        "id": "pluto",&#10;        "name": "Pluto Orbit",&#10;        "kg": 3500,&#10;        "lb": 7720&#10;      }&#10;    ],&#10;    "flickr_images": [&#10;      "https://farm5.staticflickr.com/4599/38583829295_581f34dd84_b.jpg",&#10;      "https://farm5.staticflickr.com/4645/38583830575_3f0f7215e6_b.jpg",&#10;      "https://farm5.staticflickr.com/4696/40126460511_b15bf84c85_b.jpg",&#10;      "https://farm5.staticflickr.com/4711/40126461411_aabc643fd8_b.jpg"&#10;    ],&#10;    "name": "Falcon Heavy",&#10;    "type": "rocket",&#10;    "active": true,&#10;    "stages": 2,&#10;    "boosters": 2,&#10;    "cost_per_launch": 90000000,&#10;    "success_rate_pct": 100,&#10;    "first_flight": "2018-02-06",&#10;    "country": "United States",&#10;    "company": "SpaceX",&#10;    "wikipedia": "https://en.wikipedia.org/wiki/Falcon_Heavy",&#10;    "description": "With the ability to lift into orbit over 54 metric tons (119,000 lb)--a mass equivalent to a 737 jetliner loaded with passengers, crew, luggage and fuel--Falcon Heavy can lift more than twice the payload of the next closest operational vehicle, the Delta IV Heavy, at one-third the cost.",&#10;    "id": "5e9d0d95eda69974db09d1ed"&#10;  }&#10;)]' expression="#[payload]"/>
+		
+</munit:validation>
+	</munit:test>
+		<munit:test name="test-GET-launches-if-payload-is-null" doc:id="4a542d9e-ff87-45c4-b5d8-ed59fa0dfdf1">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launches:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock HTTP Request to SpaceX" doc:id="5cf84379-dae2-476c-802f-2ea3ddde4642" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="66411222-e67f-488e-ba01-6fcaac09b1d6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="GET /launches Request" doc:id="8c97428b-1680-4ce3-a17f-0442fb15a67e" config-ref="HTTP_Request_test_configuration" path="${launches.endpoint}" >
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"page" : "1"
+}]]]></http:query-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert Status Code" doc:id="8152cd57-2084-4d50-b0f8-0be495f72f96" is='#[MunitTools::equalTo(204)]' expression="#[attributes.statusCode]" message="Wrong Status Code"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-GET-launches-pagination" doc:id="a4226d1b-d665-4d5c-9d9e-b0b031f5defa">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launches:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP Request to SpaceX" doc:id="3469c421-36d6-40ba-b057-e0e94e9101f0" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="66411222-e67f-488e-ba01-6fcaac09b1d6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{"id": 1, "name": "Launch 1"},&#10;{"id": 2, "name": "Launch 2"},&#10;{"id": 3, "name": "Launch 3"},&#10;{"id": 4, "name": "Launch 4"},&#10;{"id": 5, "name": "Launch 5"},&#10;{"id": 6, "name": "Launch 6"},&#10;{"id": 7, "name": "Launch 7"},&#10;{"id": 8, "name": "Launch 8"},&#10;{"id": 9, "name": "Launch 9"},&#10;{"id": 10, "name": "Launch 10"},&#10;{"id": 11, "name": "Launch 11"},&#10;{"id": 12, "name": "Launch 12"},&#10;{"id": 13, "name": "Launch 13"},&#10;{"id": 14, "name": "Launch 14"},&#10;{"id": 15, "name": "Launch 15"}]]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="GET /launches Request" doc:id="b5fa3437-3d4f-4e6c-8beb-f6fabe7b1b9e" config-ref="HTTP_Request_test_configuration" path="${launches.endpoint}">
+				<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"" : "",
+	"id" : "3"
+}]]]></http:uri-params>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"page" : "6"
+}]]]></http:query-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert status code" doc:id="45fc44d3-925e-4006-ad62-51e7fb1d5e02" message="Wrong Status Code" is='#[MunitTools::equalTo(204)]' expression="#[attributes.statusCode]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-GET-launches-id" doc:id="bf06492b-2d60-4780-9fb3-e1f0cd5b7dd9">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launches\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP Request to SpaceX" doc:id="1845be88-5c3d-489b-b79a-1c9b2b5f8f1f" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b3634cfd-fd45-4a5b-a68a-d6984f275002" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "name": "Launch3",&#10;    "id": "3"&#10;}]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<http:request method="GET" doc:name="GET /launches/{id} Request" doc:id="fa8031bc-2199-4dbd-8735-bb74a14cd13e" config-ref="HTTP_Request_test_configuration" path="${launches.endpoint}/{id}">
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "3"
+}]]]></http:uri-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert status code" doc:id="4f237a45-8f73-4939-9dcf-fe84581bf12b" message="Wrong Status Code" is='#[MunitTools::equalTo(200)]' expression="#[attributes.statusCode]" />
+			<munit-tools:assert-that doc:name="Assert Payload" doc:id="117ca60f-581c-4ed6-87ae-c513474e9be4" message="Payload does not match expected value" expression="#[payload]" is='#[MunitTools::equalTo({&#10;    "name": "Launch3",&#10;    "id": "3"&#10;    })]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-GET-launches" doc:id="aaa27bbb-e566-4e04-8298-9e49e9bff4fb">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launches:space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP Request to SpaceX" doc:id="24c3d3da-6192-452f-a93c-09d4f221630b" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="66411222-e67f-488e-ba01-6fcaac09b1d6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[{"id": 1, "name": "Launch 1"},&#10;{"id": 2, "name": "Launch 2"},&#10;{"id": 3, "name": "Launch 3"},&#10;{"id": 4, "name": "Launch 4"},&#10;{"id": 5, "name": "Launch 5"},&#10;{"id": 6, "name": "Launch 6"},&#10;{"id": 7, "name": "Launch 7"},&#10;{"id": 8, "name": "Launch 8"},&#10;{"id": 9, "name": "Launch 9"},&#10;{"id": 10, "name": "Launch 10"},&#10;{"id": 11, "name": "Launch 11"},&#10;{"id": 12, "name": "Launch 12"},&#10;{"id": 13, "name": "Launch 13"},&#10;{"id": 14, "name": "Launch 14"},&#10;{"id": 15, "name": "Launch 15"}]]' />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="GET /launches Request" doc:id="95a8584a-587a-4302-be16-0687548887fc" config-ref="HTTP_Request_test_configuration" path="${launches.endpoint}" >
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"page" : "1"
+}]]]></http:query-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert status code" doc:id="a1da57bf-f5dd-4d32-be20-89376849df88" message="Wrong Status Code" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-GET-launches-id-if-payload-is-null" doc:id="c75c8eec-7407-4a7c-b04a-407dec823b2f">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\launches\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock HTTP Request to SpaceX" doc:id="ba2e2c95-9432-41cd-bb13-ae4eed917651" processor="http:request" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b3634cfd-fd45-4a5b-a68a-d6984f275002" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{"statusCode": 200}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="GET /launches/{id} Request" doc:id="447e3732-86a8-462b-b4ae-68d4bf543cdb" config-ref="HTTP_Request_test_configuration" path="${launches.endpoint}/{id}" >
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : "3"
+}]]]></http:uri-params>
+			</http:request>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert status code" doc:id="6d635605-d36b-4d80-8caf-e287a24681f6" message="Wrong Status Code" is="#[MunitTools::equalTo(204)]" expression="#[attributes.statusCode]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-payloadsOne_and_All_GETTest" doc:id="30523216-d2a4-4d02-902d-8883056cc53a" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\payloads:space-x-system-api-config" />
+			<munit:enable-flow-source value="get:\payloads\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request to payloadsAll" doc:id="351c3897-a408-4d40-92be-c89618abc5a7" config-ref="HTTP_Request_test_configuration" path="${payloads.endpoint}"/>
+			<ee:transform doc:name="Transform Message" doc:id="5f466d09-affe-4cef-a515-6c03e1c3bbc0" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[payload.id]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[payload]" doc:name="Set Variable ID_ARRAY" doc:id="72a7a738-a2e3-47ec-80e8-98487b10bbd8" variableName="ID_ARRAY"/>
+			<set-variable value="#[vars.ID_ARRAY[0]]" doc:name="Set Variable payloads test id" doc:id="5b9dcd88-1c18-46d1-b041-2440bb554fd7" variableName="id"/>
+			<logger level="DEBUG" doc:name="Logger" doc:id="e5a9ae13-d511-4c80-a0b3-0d8aaa80bf3f" message="#[vars.ID_ARRAY]"/>
+			<http:request method="GET" doc:name="Request to payloadsOne" doc:id="1c1905b5-cfe5-4ef5-b084-e21d7123b5ba" config-ref="HTTP_Request_test_configuration" path="#[Mule::p('payloads.endpoint') ++ '/' ++ vars.id]"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals no data  200" doc:id="837a3881-9ef0-4869-aca3-b5e262e41e62" actual="#[attributes.statusCode]" expected="#[200]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-payloadsOne_and_All_test_no_data" doc:id="d9ae58ee-4a77-4211-847a-786bd200a70b" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\payloads:space-x-system-api-config" />
+			<munit:enable-flow-source value="get:\payloads\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d6e0828d-54c2-4b41-8d88-6ae8972bd617" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0ca50bbb-0591-4a71-baf7-6271313269e2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request to payloadsAll" doc:id="145df38f-90d6-4a14-9d3f-743916fbc67d" config-ref="HTTP_Request_test_configuration" path="/payloads" />
+			<ee:transform doc:name="Transform Message" doc:id="5f24c7f1-7f4a-4642-a94e-ff809c889ab5" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[payload.id]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[payload]" doc:name="Set Variable ID_ARRAY" doc:id="5a66b3c1-d353-4238-83c2-5fb49229eac7" variableName="ID_ARRAY" />
+			<set-variable value="#[vars.ID_ARRAY[0]]" doc:name="Set Variable payloads test id" doc:id="661377c3-0b24-4f8a-b27c-dfa23bba7334" variableName="id" />
+			<logger level="DEBUG" doc:name="Logger" doc:id="7edd666d-9f89-468b-a600-879b3d556d7e" message="#[vars.ID_ARRAY]" />
+			<http:request method="GET" doc:name="Request to payloadsOne" doc:id="40b999c5-8d7d-4e8a-aaba-a38604f811f7" config-ref="HTTP_Request_test_configuration" path="#[Mule::p('payloads.endpoint') ++ '/' ++ vars.id]" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals no data  204" doc:id="5f92d19f-1dcc-46de-9877-eb45d3d861f0" actual="#[attributes.statusCode]" expected="#[204]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-capsulesOne_and_ALL" doc:id="d03a6bee-96df-46aa-abf0-e54b45afc9be">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\capsules:space-x-system-api-config" />
+			<munit:enable-flow-source value="get:\capsules\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request to capsulesAll" doc:id="e25f3aa9-a16d-497e-bfa8-abcbb2498a1c" config-ref="HTTP_Request_test_configuration" path="${capsules.endpoint}" />
+			<ee:transform doc:name="Transform Message" doc:id="4791511f-2bd6-4d64-8148-f85cce4259f8" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[payload.id]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[payload]" doc:name="Set Variable ID_ARRAY" doc:id="327992bf-5fbe-47f3-8509-6c6aafae4e76" variableName="ID_ARRAY" />
+			<set-variable value="#[vars.ID_ARRAY[0]]" doc:name="Set Variable payloads test id" doc:id="91415b8b-0ab1-4fd6-8daf-daaf8df76d29" variableName="id" />
+			<logger level="DEBUG" doc:name="Logger" doc:id="aba3ea18-4b23-4ea8-9bc2-40b2302f191c" message="#[vars.ID_ARRAY]" />
+			<http:request method="GET" doc:name="Request to capsulesOne" doc:id="11ad7f07-47ad-4e06-a031-17b3e8a17547" config-ref="HTTP_Request_test_configuration" path="#[Mule::p('capsules.endpoint') ++ '/' ++ vars.id]" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals no data  200" doc:id="f7c64c79-0c5c-444d-8ac1-d5cbcc2c4207" actual="#[attributes.statusCode]" expected="#[200]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-capsulesOne_and_All_test_no_data" doc:id="13cca5fd-5dc1-410a-806c-1a7019b7eb92">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="space-x-system-api-main" />
+			<munit:enable-flow-source value="get:\capsules:space-x-system-api-config" />
+			<munit:enable-flow-source value="get:\capsules\(id):space-x-system-api-config" />
+
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="47271b01-299a-44f0-9656-5cd7621fc1c9" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="36482cfe-d6e8-4a57-b5a7-c8e3aa934ca3" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request to capsulesAll" doc:id="4a723c01-ec56-4eda-9de9-7a413919a143" config-ref="HTTP_Request_test_configuration" path="${capsules.endpoint}" />
+			<ee:transform doc:name="Transform Message" doc:id="7d4d7cac-5780-4e2d-ba87-c6af8dcb881f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[payload.id]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<set-variable value="#[payload]" doc:name="Set Variable ID_ARRAY" doc:id="b0a82515-d21e-4047-9b83-4810be5f04be" variableName="ID_ARRAY" />
+			<set-variable value="#[vars.ID_ARRAY[0]]" doc:name="Set Variable payloads test id" doc:id="da678fde-1528-4254-9922-b0ce29f260d2" variableName="id" />
+			<logger level="DEBUG" doc:name="Logger" doc:id="29f4910d-f4dc-470a-9ba7-b0492980ab42" message="#[vars.ID_ARRAY]" />
+			<http:request method="GET" doc:name="Request to capsulesOne" doc:id="9f0c3902-298d-4411-ad53-edf993106416" config-ref="HTTP_Request_test_configuration" path="#[Mule::p('capsules.endpoint') ++ '/' ++ vars.id]" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert equals no data  204" doc:id="86e6e083-fed6-4391-968b-8c65d158cf49" actual="#[attributes.statusCode]" expected="#[204]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

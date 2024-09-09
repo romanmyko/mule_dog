@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="getLaunches" doc:id="bd93ce4e-1e68-46a7-b01f-046564e772b0" >
+		<set-variable value="#[message.attributes.queryParams.'page']" doc:name="Set Page" doc:id="3ab66f26-0c36-40cf-8b5b-627566c16fbf" variableName="page" />
+		<set-variable value="#[10]" doc:name="Set Limit" doc:id="1acd71d2-8411-4cb4-9137-ca2b52b98d01" variableName="limit" />
+		<http:request method="GET" doc:name="Request to SpaceX" doc:id="66411222-e67f-488e-ba01-6fcaac09b1d6" config-ref="SpaceX-API-Request-Config" path="${launches.endpoint}">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	'page' : vars.page
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#['[]']" doc:name="Set Variable for 204" doc:id="51be182f-abfe-4fe6-a51f-1aa5c68cd1f1" variableName="payload204" />
+		<choice doc:name="Choice Payload Value" doc:id="444ba631-8128-4892-957e-50a7f5be9976" >
+			<when expression="#[payload != null and not isEmpty(payload)]" >
+				<ee:transform doc:name="Payload to JSON with pagination" doc:id="4f381668-7e4a-482d-9f72-4f02f4f12aba">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var totalDocs = sizeOf(payload)
+var limit = vars.limit as Number
+var page = vars.page as Number
+var totalPages = ceil(totalDocs / limit) as Number
+var start = (page - 1) * limit
+var end = start + limit - 1
+var result = payload[start to (if (end >= totalDocs) totalDocs - 1 else end)]
+---
+if(isEmpty(result) == false)
+    {docs:  result ,
+    totalDocs: totalDocs,
+    limit: limit,
+    totalPages: totalPages,
+    page: page,
+    hasPrevPage: page > 1,
+    hasNextPage: page < totalPages,
+    prevPage: if (page > 1) page - 1 else null,
+    nextPage: if (page < totalPages) page + 1 else null
+    }
+else
+vars.payload204]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[if (payload == '[]') 204 else 200]" doc:name="Set Status Variable" doc:id="bafb9157-7380-46b8-b667-c46645d8f750" variableName="httpStatus" />
+				<logger level="INFO" doc:name="Get Launches Logger" doc:id="d36ddf50-2278-4de7-be84-9a47be9b739a" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Launches"]' />
+			
+</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="87931f77-8bbb-4f76-98dc-c0c7fa13f067" variableName="httpStatus" />
+				<logger level="DEBUG" doc:name="Logger Launches No Content" doc:id="495fe4ed-3928-4f1a-a48c-e4303f1aac51" message='#[output application/java&#10;--- &#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Launches"]'/>
+			
+</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getLaunchpads" doc:id="5c4f6b0d-17f2-431b-8846-6553f3ab28b3" >
+		<http:request method="GET" doc:name="Request GET /launchpads" doc:id="9e19362b-95a2-4652-b4f9-4bd32fb5c880" config-ref="SpaceX-API-Request-Config" path="${launchpads.endpoint}" />
+		<ee:transform doc:name="Transform Launchpad Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map (launchpad) -> {
+	name: launchpad.name,
+	full_name: launchpad.full_name,
+    locality: launchpad.locality,
+    region: launchpad.region,
+    timezone: launchpad.timezone,
+    latitude: launchpad.latitude,
+    longitude: launchpad.longitude,
+    launch_attempts: launchpad.launch_attempts,
+    launch_successes: launchpad.launch_successes,
+    rockets: launchpad.rockets,
+    launches: launchpad.launches,
+    status: launchpad.status,
+    id: launchpad.id
+   }]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Get Launchpads Logger" doc:id="048d28d1-ac48-4aba-b660-cc9e7df730f2" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Launchpads"]'/>
+	</sub-flow>
+	<sub-flow name="getCores" doc:id="5fcecedb-3036-4e8b-ad72-57439856721a" >
+		<http:request method="GET" doc:name="Request GET /cores" doc:id="d7aff9f4-9ea4-484d-a422-814cd4f09ca7" config-ref="SpaceX-API-Request-Config" path="${cores.endpoint}" />
+		<ee:transform doc:name="Transform Core Message" doc:id="543f0994-364b-4fb6-95c3-269800754f19" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Get Cores Logger" doc:id="27a53781-885b-4711-9360-26d5ec67cfc8" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Cores"]'/>
+	</sub-flow>
+	<sub-flow name="getRockets" doc:id="0cc8c745-c524-4cd4-bdac-4153d6a41cc9" >
+		<http:request method="GET" doc:name="Request GET /rockets" doc:id="1635a848-7c0e-4801-a5ad-45185a7ecf89" path="${rockets.endpoint}" config-ref="SpaceX-API-Request-Config" />
+		<logger level="INFO" doc:name="Get Rockets Logger" doc:id="2b11f5c0-be95-483b-98d2-6f5600b605f6" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Rockets"]'/>
+	</sub-flow>
+	<sub-flow name="getCapsules" doc:id="816a24f0-b523-4843-84c5-a55e1907205f" >
+		<http:request method="GET" doc:name="Request capsulesAll" doc:id="a5339c78-7725-4d41-a4b9-09c78115affe" config-ref="SpaceX-API-Request-Config" path="${capsules.endpoint}" />
+		<ee:transform doc:name="Transform Capsules Message" doc:id="aa0179c7-3a32-49f2-a3ee-b24724c27942" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Get Capsules Logger" doc:id="41dc19ba-9ee8-454e-8b65-88c46cacfa13" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Capsules"]'/>
+	</sub-flow>
+		<sub-flow name="getPayloads" doc:id="a83bed14-85a1-45c0-abe4-4f2acf402e02" >
+		<http:request method="GET" doc:name="Request payloadsAll" doc:id="c299d8ff-8f23-458c-8724-88442b705864" config-ref="SpaceX-API-Request-Config" path="${payloads.endpoint}" />
+		<ee:transform doc:name="Transform Message payloadsAll" doc:id="2e53fe68-5393-4bbc-b2c0-b6f5340a29dd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Get Payloads Logger" doc:id="0e62d36c-addf-4319-9336-00fd1146512f" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Payloads"]'/>
+	</sub-flow>
+	<sub-flow name="getRocketById" doc:id="1bc70de2-91b5-4e16-8dec-89a8bdb7f36a" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Rocket ID" doc:id="0bb0cbdc-2de7-446b-a67f-663bab0b719d" variableName="rocketId" />
+		<http:request method="GET" doc:name="Request GET /rockets/{id}" doc:id="938e63cc-358a-4617-aa5b-7af9d1021fca" path="${rockets.endpoint}/{id}" config-ref="SpaceX-API-Request-Config">
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : vars.rocketId
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="e2f8f63c-a8a7-416e-b64b-39f3ef621b8f" >
+			<when expression="#[payload != null]">
+				<ee:transform doc:name="Transform Rocket by ID Message" doc:id="420b4b7e-5909-4e91-ba7c-789ace0f6a93" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Get Rockets by ID Logger" doc:id="429f4453-ed88-4998-8c5e-7c73895c4feb" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Rocket Id #[vars.rocketId]"]' />
+			</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="e2648e6d-19c7-4958-adea-a122e189e1da" variableName="httpStatus" />
+				<logger level="DEBUG" doc:name="Logger Launchpad by Id No Content" doc:id="58bc326d-e726-448e-a8aa-7638a616c3c8" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Rocket Id #[vars.rocketId]"]'/>
+			</otherwise>
+		</choice>
+	
+</sub-flow>
+	<sub-flow name="getLaunchByID" doc:id="f805bb32-081a-4f23-80ea-ea67af6270ee" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Launch ID" doc:id="57bfa34d-25ce-4a10-9c95-ac192807ace4" variableName="launchID" />
+		<http:request method="GET" doc:name="Request to SpaceX" doc:id="b3634cfd-fd45-4a5b-a68a-d6984f275002" config-ref="SpaceX-API-Request-Config" path="${launches.endpoint}/{id}" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.launchID
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="e343a0c1-5f04-44f9-8314-87b50ee2e3a1" >
+			<when expression="#[payload != null and not isEmpty(payload)]" >
+				<ee:transform doc:name="Transform Launch by ID Message" doc:id="efa67daa-5b7c-4696-9d5d-bb358a47ced7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Get Launch by Id Logger" doc:id="b6b06245-a765-4064-9d93-ae66e29a79f0" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Launch Id #[vars.launchID]"]' />
+			
+</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="7f392abc-b27c-47ed-b06d-0f08ed77c582" variableName="httpStatus" />
+				<logger level="DEBUG" doc:name="Logger Launchpad by Id No Contentr" doc:id="02d3373a-ba3b-4ff5-a717-673859da652a" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Launch Id #[vars.launchID]"]'/>
+			
+</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getCoreById" doc:id="07769150-354a-42bc-9070-173c595d9d18" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Core id" doc:id="65c98312-9269-4f7d-906b-669de53e4706" variableName="coreId"/>
+		<http:request method="GET" doc:name="Request GET /cores{id}" doc:id="e7ad58d5-51fc-4b0d-82ca-931324741197" config-ref="SpaceX-API-Request-Config" path="${cores.endpoint}/{id}">
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : vars.coreId
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="9bf709a7-8fe8-4e12-9432-0d73013c622d" >
+			<when expression="#[payload != null]">
+				<ee:transform doc:name="Transform Core by ID Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Get Cores by ID Logger" doc:id="4d30cdff-9846-40a0-a658-19c14bcacf51" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Core Id #[vars.coreId]"]' />
+			</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="7873aeae-c6b8-45c4-b6de-088ca6dcac0d" variableName="httpStatus" />
+				<logger level="DEBUG" doc:name="Logger Coreby Id No Content" doc:id="77f60d61-419c-4f6c-83a1-fdf83403ce97" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Core Id #[vars.coreId]"]'/>
+			</otherwise>
+		</choice>
+	
+</sub-flow>
+	<sub-flow name="getLaunchpadById" doc:id="465d562e-f51c-41d2-862e-84f5f0d45f20" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Launchpad Id" doc:id="6ecce6dc-8fd1-4a27-9363-d14d40cdd7f9" variableName="launchpadId" />
+		<http:request method="GET" doc:name="Request GET /launchpads/{id}" doc:id="273f8b77-95e9-40fa-9d59-3b1f38f6831f" config-ref="SpaceX-API-Request-Config" path="${launchpads.endpoint}/{id}">
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"id" : vars.'launchpadId'
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="6e74c32f-9119-4255-87b2-73d8fbcea9a2" >
+			<when expression="#[payload != null]">
+				<ee:transform doc:name="Transform Launchpad by ID Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    name: payload.name,
+    full_name: payload.full_name,
+    locality: payload.locality,
+    region: payload.region,
+    timezone: payload.timezone,
+    latitude: payload.latitude,
+    longitude: payload.longitude,
+    launch_attempts: payload.launch_attempts,
+    launch_successes: payload.launch_successes,
+    rockets: payload.rockets,
+    launches: payload.launches,
+    status: payload.status,
+    id: payload.id
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Get Launchpsds by ID Logger" doc:id="35468912-6a02-45c6-84cb-0315c1583d62" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Launchpad Id #[vars.launchpadId]"]' />
+			</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="b4e6e72d-5cb9-4d2b-83f9-ea2a63a39d71" variableName="httpStatus" />
+				<logger level="DEBUG" doc:name="Logger Launchpad by Id No Content" doc:id="2105c2e8-b836-4c77-a1a2-e73ffdaa7c0f" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Launchpad Id #[vars.launchpadId]"]'/>
+			</otherwise>
+		</choice>
+	
+</sub-flow>
+	<sub-flow name="getCapsuleById" doc:id="68ef82f6-f0b8-40bd-8fa4-ab2939d8f77d" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Variable capsulesID" doc:id="65bf77ce-2817-4d03-a851-13ffce5aa4f6" variableName="capsulesId"/>
+		<http:request method="GET" doc:name="Request capsulesOne" doc:id="36482cfe-d6e8-4a57-b5a7-c8e3aa934ca3" config-ref="SpaceX-API-Request-Config" path="${capsules.endpoint}/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.'capsulesId'
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="38783ea3-f9be-4c5e-bba7-f5e49e845dc7" >
+			<when expression="#[payload == null and isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message capsulesOne No  Content" doc:id="1c60a9fd-c66c-4efd-988b-596246454b11">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "No Content"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="httpStatus"><![CDATA[204
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="DEBUG" doc:name="Logger capsulesOne No  Content" doc:id="67a3b9ce-4ff1-49e6-ae47-9aa313813fd3" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Capsule Id #[vars.capsulesId]"]'/>
+			
+</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message capsulesOne" doc:id="3e24469d-75a3-456b-9757-6e73067413d3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger capsulesOne" doc:id="dab6fd31-c78e-454f-98d4-0847c5d33248" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Capsule Id #[vars.capsulesId]"]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getPayloadById" doc:id="e7cc3cd4-0a2b-4c3d-9c0a-57e8030e3913" >
+		<set-variable value="#[message.attributes.uriParams.'id']" doc:name="Set Variable payloadsID" doc:id="5d16e76a-3b9a-4e24-a012-8265b105e2e8" variableName="payloadsId" />
+		<http:request method="GET" doc:name="Request payloadsOne" doc:id="0ca50bbb-0591-4a71-baf7-6271313269e2" config-ref="SpaceX-API-Request-Config" path="${payloads.endpoint}/{id}" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.'payloadsId'
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice Payload Value" doc:id="7073dea9-3b20-4793-a0b4-fab51ae7f162" >
+			<when expression="payload == null" >
+				<ee:transform doc:name="Transform Message payloadsOne No  Content" doc:id="1d0f940b-c00c-410a-a705-cf78c7b9d4db" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "No Content"}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[204
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="DEBUG" doc:name="Logger payloadsOne No  Content" doc:id="8e4b21f2-6bb7-483e-a3c1-1d14382ec39f" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received empty response from SpaceX API with Payload Id #[vars.payloadsId]"]'/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message payloadsOne" doc:id="1985192b-0d70-48d7-aee4-a5913fa67fb9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger payloadsOne" doc:id="60f2cc3d-6d50-4917-ba8f-34c6a23d96e2" message='#[output application/java&#10;---&#10;"SUCCESS: SpaceX-System-API received response from SpaceX API with Payload Id #[vars.payloadsId]"]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

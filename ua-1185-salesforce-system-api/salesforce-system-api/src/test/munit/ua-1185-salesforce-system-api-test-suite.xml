@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<munit:config name="ua-1185-salesforce-system-api-test-suite.xml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="6237301a-c0c5-4078-a7d2-67083b5acb63" >
+		<http:request-connection host="0.0.0.0" port="8081" />
+	</http:request-config>
+	<munit:test name="create-case-test-flow" doc:id="6f7683b7-0645-46bc-877b-beec62e976cc">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="salesforce-system-api-main" />
+			<munit:enable-flow-source value="post:\cases:application\json:salesforce-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="0bdf13a3-e33b-4e07-b0c7-e5524fdc587f" processor="salesforce:create">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="6d4490e0-0c00-4a2d-88dd-abce0e48643e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-case.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference to Create Case" doc:id="6b977062-2cff-428c-bf8f-3e9cad778365" name="post:\cases:application\json:salesforce-system-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="c02f7b5d-d11b-4429-9df3-9be2bf1389f9" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]"/>
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="4d83474a-ae77-40e8-b0e9-881a2c004b33" expression="#[payload]" is='#[MunitTools::equalTo({&#10;    "id": null,&#10;    "items": [&#10;        {&#10;            "exception": null,&#10;            "message": null,&#10;            "payload": {&#10;                "success": true,&#10;                "id": "500Qy00000GFl2SIAT",&#10;                "errors": []&#10;            },&#10;            "id": "500Qy00000GFl2SIAT",&#10;            "statusCode": null,&#10;            "successful": true&#10;        }&#10;    ],&#10;    "successful": true&#10;})]'/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="create-contract-test-flow" doc:id="d1673862-3236-4d85-a928-db1da59e9b3b">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="salesforce-system-api-main" />
+			<munit:enable-flow-source value="post:\contracts:application\json:salesforce-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="24ed9930-1ea3-4573-ab49-42da4b78fa26" processor="salesforce:create">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b7443cd4-4c60-45e0-aa09-8f1743fe327c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-contract.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<set-payload value='#[[{&#10;            "AccountId": "001Qy00000OJydlIAD",&#10;            "ExternalId__c": "2283773",&#10;            "SuccessStatus__c": "success",&#10;            "DateCreation__c": "2024-07-01",&#10;            "Details__c": "Hello",&#10;            "RocketName__c": "Rocket",&#10;            "NameSalesforce__c":"Sofiia1",&#10;            "Status":"Draft",&#10;            "StartDate": "2023-07-01",&#10;            "ContractTerm": 1&#10;        }]]' doc:name="Set Payload Create Contract" doc:id="9e659946-cd38-414b-b195-61c87c2e27b4" />
+			<flow-ref doc:name="Flow Reference Create Contract" doc:id="934fc9c6-267f-4ef0-b9a8-fe854f145d2b" name="post:\contracts:application\json:salesforce-system-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="56cd70e5-a498-4d4e-8519-c66ea5261c32" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]"/>
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="9a154d91-e5ea-462a-8aa6-252c18be5f5f" is='#[MunitTools::equalTo({&#10;    "id": null,&#10;    "items": [&#10;        {&#10;            "exception": null,&#10;            "message": null,&#10;            "payload": {&#10;                "success": true,&#10;                "id": "800Qy00000GFjIAIA1",&#10;                "errors": []&#10;            },&#10;            "id": "800Qy00000GFjIAIA1",&#10;            "statusCode": null,&#10;            "successful": true&#10;        }&#10;    ],&#10;    "successful": true&#10;})]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="update-case-test-flow" doc:id="c7699dd9-528e-4ace-a6e4-d148071139d6">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="salesforce-system-api-main" />
+			<munit:enable-flow-source value="put:\contracts:application\json:salesforce-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="14fafb71-43b9-4d5c-a01f-b9b3b1bf7032" processor="salesforce:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="51098eb7-cea5-450a-a019-db81e0455f7e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsStream('mocks/mock-response-update.json')]" mediaType="application/json" encoding="UTF-8" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<set-payload value='#[[&#10;    {&#10;        "Id": "800Qy00000GEIwjIAH",&#10;        "AccountId": "001Qy00000OJydlIAD",&#10;        "ExternalId__c": "23333",&#10;        "SuccessStatus__c": "success",&#10;        "DateCreation__c": "2024-07-12",&#10;        "Details__c": "Hello",&#10;        "RocketName__c": "Rocket",&#10;        "NameSalesforce__c":"Name",&#10;        "Status":"Draft",&#10;        "StartDate": "2023-06-28",&#10;        "ContractTerm": 1&#10;    }&#10;]]' doc:name="Set Payload Update Contract" doc:id="5701e59f-a095-4660-8b5c-1a0cefd5bfb8" />
+			<flow-ref doc:name="Flow Reference Update Contract" doc:id="0e474f55-caf3-4ec4-92b3-aa6cc84cf9a4" name="put:\contracts:application\json:salesforce-system-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="f1481086-aeae-4fbb-b3fa-7e36c0ba9a3a" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]"/>
+			<munit-tools:assert-that doc:name="Assert that payload as expected" doc:id="b9215826-fe5e-40ad-a266-bfc6dbe8a6a8" is='#[MunitTools::equalTo({&#10;    "id": null,&#10;    "items": [&#10;        {&#10;            "exception": null,&#10;            "message": null,&#10;            "payload": {&#10;                "success": true,&#10;                "id": "800Qy00000GEIwjIAH",&#10;                "errors": []&#10;            },&#10;            "id": "800Qy00000GEIwjIAH",&#10;            "statusCode": null,&#10;            "successful": true&#10;        }&#10;    ],&#10;    "successful": true&#10;})]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-contract-by-id-204-test-flow" doc:id="08eb6d1b-0f45-44be-b34a-ee44d9c6c348" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="salesforce-system-api-main" />
+			<munit:enable-flow-source value="get:\contracts\(id):salesforce-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="75038c00-d191-4237-851a-ed9154155eff" processor="salesforce:query">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="19ecb02b-40c6-4f6e-9659-a134a85bc29c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[null]" />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference Get Contract by Id" doc:id="b0e9bfe4-4a76-4550-b5d1-78bcdced4d06" name="get:\contracts\(id):salesforce-system-api-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 204" doc:id="7ae31fe9-3e00-4167-b390-a1335be68db4" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-contract-by-id-test-flow" doc:id="ba5828fd-ca4c-4a0c-98de-5fec413dbb28" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="salesforce-system-api-main" />
+			<munit:enable-flow-source value="get:\contracts\(id):salesforce-system-api-config" />
+		</munit:enable-flow-sources>
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="083ec2ed-b410-4f38-9806-6e2215aabb71" processor="salesforce:query" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="96e88d63-596a-4df1-87e3-2d350b2f3498" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[[&#10;    {&#10;        "Status": "Draft",&#10;        "StartDate": "2023-07-01",&#10;        "DateCreation__c": "2024-07-01",&#10;        "RocketName__c": "Rocket",&#10;        "AccountId": "001Qy00000OJydlIAD",&#10;        "ExternalId__c": "5eb87cddffd86e000604b32f",&#10;        "Details__c": "Hello",&#10;        "Id": "800Qy00000GUEXNIA5",&#10;        "ContractTerm": "1",&#10;        "type": "Contract",&#10;        "SuccessStatus__c": "success",&#10;        "NameSalesforce__c": "Sofiia1"&#10;    }&#10;]]' />
+					<munit-tools:attributes value='#[{&#10;    "statusCode": 200&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference Get Contract by Id" doc:id="40a07a4e-66c8-469f-8249-44058cd46ba6" name="get:\contracts\(id):salesforce-system-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert That Status Code is 200" doc:id="e183bd70-c8f2-4556-86d8-545f35ebed3d" is="#[MunitTools::equalTo(200)]" expression="#[attributes.statusCode]" />
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

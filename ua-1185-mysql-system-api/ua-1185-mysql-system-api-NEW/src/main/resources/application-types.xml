@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog/>
+  <types:enrichment select="#1b03ed6c-ae6b-4fba-88b4-b488a2ae6d9c">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:attributes type="null"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#1b2db723-c432-4c3b-be15-fcc0a1333cab">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="null"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#63d19d5a-a636-4c37-aea0-337108f0bcd7">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="null"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#23fe8fdc-df09-47a2-b87f-ed575bcee3c8">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="externalId" type="null"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e365d3ec-cb92-4aa1-9f4b-084f33db1c9f">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="externalId" type="null"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#1ce37d54-8e04-400f-8417-d5c8327ea953">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:variables>
+          <types:variable name="dataXml" type="null"/>
+        </types:variables>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#87c4c5a2-3009-4629-abc4-5c45d9989e80">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:attributes type="null"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#1b896d3c-916b-431b-b7fc-55928187ef56">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:attributes type="null"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

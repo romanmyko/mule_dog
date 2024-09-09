@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_4effccd5_9694_484d_b657_fa3874a5bc0c_Input_Payload = {|
+  "error code": Null, 
+  "error message": Null
+|}
+

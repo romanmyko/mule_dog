@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <http:listener-config name="space-x-system-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="space-x-system-api-config" api="space-x-system-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="space-x-system-api-main">
+        <http:listener config-ref="space-x-system-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="space-x-system-api-config" />
+        <logger level="INFO" doc:name="Main Flow Logger" doc:id="0eac6f66-af86-490c-b05b-b01a24ea9687" message='#[output application/java&#10;---&#10;"SUCCESS: Main flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-APIKit-Error_Handler" />
+    </flow>
+    <flow name="space-x-system-api-console">
+        <http:listener config-ref="space-x-system-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="space-x-system-api-config" />
+		<error-handler ref="ua-1185-spacex-APIKit-Error_Handler" />
+    </flow>
+    <flow name="get:\capsules:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /capsules" doc:id="646b164f-5d49-4703-ad25-5bc7d9d732f8" name="getCapsules"/>
+		<logger level="INFO" doc:name="Get Capsules Flow Logger" doc:id="d27ea1f2-b05e-4c06-8b0a-06b64d9644a4" message='#[output application/java&#10;---&#10;"SUCCESS: GetCapsules flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\cores:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /cores" doc:id="89b03fec-6608-4af8-ad8a-58fddcd4cadb" name="getCores"/>
+		<logger level="INFO" doc:name="Get Cores Flow Logger" doc:id="e651facc-7dc4-44b1-92cf-af2e4a75948e" message='#[output application/java&#10;---&#10;"SUCCESS: GetCores flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\launches:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /launches" doc:id="8597512c-f790-4c40-9b3b-5a59716c3f80" name="getLaunches"/>
+		<logger level="INFO" doc:name="Get Launches Flow Logger" doc:id="442c6433-75c6-47ee-9ff0-0f3387fc5033" message='#[output application/java&#10;---&#10;"SUCCESS: GetLaunches flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\launchpads:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /launchpads" doc:id="7bea35f7-6396-4bfe-8b50-c7b7d6375435" name="getLaunchpads"/>
+		<logger level="INFO" doc:name="Get Launchpads Flow Logger" doc:id="da14d6a7-1146-42ef-83b0-26e048b19b7e" message='#[output application/java&#10;---&#10;"SUCCESS: GetLaunchpads flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\payloads:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /payloads" doc:id="2b549392-d95d-402c-9cff-23aee9ce21eb" name="getPayloads"/>
+		<logger level="INFO" doc:name="Get Payloads Flow Logger" doc:id="8a8db225-83fc-43be-916f-ef597df27c77" message='#[output application/java&#10;---&#10;"SUCCESS: GetPayloads flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\rockets:space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /rockets" doc:id="399a23ba-516b-44c1-945b-41f977dbfb24" name="getRockets"/>
+		<logger level="INFO" doc:name="Get Rockets Flow Logger" doc:id="a6874556-ed9f-4be6-a1c4-5bccf130f0e0" message='#[output application/java&#10;---&#10;"SUCCESS: GetRockets flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\rockets\(id):space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /rockets/{id}" doc:id="847a95dd-c8f8-40f0-bbd5-217ccc6aabc2" name="getRocketById"/>
+		<logger level="INFO" doc:name="Get Rockets by ID Flow Logger" doc:id="5c7bcf29-81aa-4de7-a79f-63a1228faeaa" message='#[output application/java&#10;---&#10;"SUCCESS: GetRockets by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\payloads\(id):space-x-system-api-config">
+		<flow-ref doc:name="Flow Reference to GET /payloads/{id}" doc:id="1c2d5224-be38-40c9-96d8-8cbd4c49a9ba" name="getPayloadById"/>
+		<logger level="INFO" doc:name="Get Payloads by ID Flow Logger" doc:id="6d99932a-c935-480c-9624-21d40d3e6fb9" message='#[output application/java&#10;---&#10;"SUCCESS: GetPayloads by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\launchpads\(id):space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /launchpads/{id}" doc:id="75b868cb-ef0d-4bad-b228-ce907f3c36b9" name="getLaunchpadById"/>
+		<logger level="INFO" doc:name="Get Launchpads by ID Flow Logger" doc:id="0dd0f2c4-766f-4bf4-ae94-e0bc222c3864" message='#[output application/java&#10;---&#10;"SUCCESS: GetLaunchpads by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\capsules\(id):space-x-system-api-config">
+        <flow-ref doc:name="Flow Reference to GET /capsules/{id}" doc:id="584443da-4210-4c7f-a670-d2f1596661a6" name="getCapsuleById"/>
+		<logger level="INFO" doc:name="Get Capsules by ID Flow Logger" doc:id="aec8acb1-c7cd-442b-b9bf-8bf8ebbb0a1a" message='#[output application/java&#10;---&#10;"SUCCESS: GetCapsules by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\cores\(id):space-x-system-api-config">
+		<flow-ref doc:name="Flow Reference to GET /cores/{id}" doc:id="e9730924-948e-4035-8687-071c0360802d" name="getCoreById"/>
+		<logger level="INFO" doc:name="Get Cores by ID Flow Logger" doc:id="860d032c-a953-4b3f-b81f-f0621b5e8600" message='#[output application/java&#10;---&#10;"SUCCESS: GetCores by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+    <flow name="get:\launches\(id):space-x-system-api-config">
+		<flow-ref doc:name="Flow Reference to GET /launches/{id}" doc:id="bfbe14e5-0e5e-49e2-8f74-cf28b8fbc325" name="getLaunchByID"/>
+		<logger level="INFO" doc:name="Get Launches by ID Flow Logger" doc:id="e34d2e82-cc22-41b6-8672-504aa87752f9" message='#[output application/java&#10;---&#10;"SUCCESS: GetLaunches by id flow processed successfully"]'/>
+		<error-handler ref="ua-1185-spacex-api-Error_Handler" />
+    </flow>
+</mule>

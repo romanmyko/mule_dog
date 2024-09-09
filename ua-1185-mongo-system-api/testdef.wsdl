@@ -1,0 +1,899 @@
+<definitions name="RocketService"
+             targetNamespace="http://example.com/rocketservice"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:tns="http://example.com/rocketservice"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <types>
+        <xsd:schema targetNamespace="http://example.com/rocketservice">
+            <xsd:element name="GetRocketByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="GetRocketByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="active" type="xsd:boolean"/>
+                        <xsd:element name="stages" type="xsd:int"/>
+                        <xsd:element name="costPerLaunch" type="xsd:decimal"/>
+                        <xsd:element name="description" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="GetAllRocketsRequest">
+                <xsd:complexType/>
+            </xsd:element>
+            <xsd:element name="GetAllRocketsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="rockets" type="tns:Rocket" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+                <xsd:complexType name="Rocket">
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="active" type="xsd:boolean"/>
+                        <xsd:element name="stages" type="xsd:int"/>
+                        <xsd:element name="costPerLaunch" type="xsd:decimal"/>
+                        <xsd:element name="description" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+
+            <xsd:element name="GetPayloadByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="GetPayloadByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="type" type="xsd:string"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="orbit" type="xsd:string"/>
+                        <xsd:element name="apoapsis" type="xsd:int"/>
+                        <xsd:element name="periapsis" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            
+            <xsd:element name="GetAllPayloadsRequest">
+                <xsd:complexType/>
+            </xsd:element>
+            
+            <xsd:element name="GetAllPayloadsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="payloads" type="tns:Payload" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+                <xsd:complexType name="Payload">
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="type" type="xsd:string"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="orbit" type="xsd:string"/>
+                        <xsd:element name="apoapsis" type="xsd:int"/>
+                        <xsd:element name="periapsis" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            
+            <xsd:element name="GetLaunchpadByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            
+            <xsd:element name="GetLaunchpadByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="locality" type="xsd:string"/>
+                        <xsd:element name="region" type="xsd:string"/>
+                        <xsd:element name="status" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="GetAllLaunchpadsRequest">
+                <xsd:complexType/>
+            </xsd:element>
+            
+            <xsd:element name="GetAllLaunchpadsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="launchpads" type="tns:Launchpad" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+                <xsd:complexType name="Launchpad">
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="locality" type="xsd:string"/>
+                        <xsd:element name="region" type="xsd:string"/>
+                        <xsd:element name="status" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+
+
+            <xsd:element name="GetLaunchByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            
+            <xsd:element name="GetLaunchByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="success" type="xsd:boolean"/>
+                        <xsd:element name="details" type="xsd:string"/>
+                        <xsd:element name="launchName" type="xsd:string"/>
+                        <xsd:element name="date" type="xsd:string"/>
+                        <xsd:element name="rocketName" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="GetAllLaunchesRequest">
+                <xsd:complexType/>
+            </xsd:element>
+            
+            <xsd:element name="GetAllLaunchesResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="launches" type="tns:Launch" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+                <xsd:complexType name="Launch">
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:int"/>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="success" type="xsd:boolean"/>
+                        <xsd:element name="details" type="xsd:string"/>
+                        <xsd:element name="launchName" type="xsd:string"/>
+                        <xsd:element name="date" type="xsd:string"/>
+                        <xsd:element name="rocketName" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+
+            <xsd:element name="CreateLaunchpadRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="locality" type="xsd:string"/>
+                        <xsd:element name="region" type="xsd:string"/>
+                        <xsd:element name="status" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreateLaunchpadResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreateLaunchRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="success" type="xsd:boolean"/>
+                        <xsd:element name="details" type="xsd:string"/>
+                        <xsd:element name="launchName" type="xsd:string"/>
+                        <xsd:element name="date" type="xsd:string"/>
+                        <xsd:element name="rocketName" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreateLaunchResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="CreateRocketRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="active" type="xsd:boolean"/>
+                        <xsd:element name="stages" type="xsd:int"/>
+                        <xsd:element name="costPerLaunch" type="xsd:decimal"/>
+                        <xsd:element name="description" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreateRocketResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreatePayloadRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="type" type="xsd:string"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="orbit" type="xsd:string"/>
+                        <xsd:element name="apoapsis" type="xsd:int"/>
+                        <xsd:element name="periapsis" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="CreatePayloadResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+
+            <xsd:element name="UpdateLaunchpadRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="locality" type="xsd:string"/>
+                        <xsd:element name="region" type="xsd:string"/>
+                        <xsd:element name="status" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdateLaunchpadResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdateLaunchRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="success" type="xsd:boolean"/>
+                        <xsd:element name="details" type="xsd:string"/>
+                        <xsd:element name="launchName" type="xsd:string"/>
+                        <xsd:element name="date" type="xsd:string"/>
+                        <xsd:element name="rocketName" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdateLaunchResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="UpdateRocketRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="active" type="xsd:boolean"/>
+                        <xsd:element name="stages" type="xsd:int"/>
+                        <xsd:element name="costPerLaunch" type="xsd:decimal"/>
+                        <xsd:element name="description" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdateRocketResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdatePayloadRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="type" type="xsd:string"/>
+                        <xsd:element name="weight" type="xsd:decimal"/>
+                        <xsd:element name="orbit" type="xsd:string"/>
+                        <xsd:element name="apoapsis" type="xsd:int"/>
+                        <xsd:element name="periapsis" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="UpdatePayloadResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="DeleteRocketByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeleteRocketByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeletePayloadByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeletePayloadByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeleteLaunchpadByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeleteLaunchpadByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeleteLaunchByExternalIdRequest">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="DeleteLaunchByExternalIdResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="Fault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="errorMessage" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </types>
+
+    <message name="GetRocketByExternalIdRequestMessage">
+        <part name="parameters" element="tns:GetRocketByExternalIdRequest"/>
+    </message>
+    <message name="GetRocketByExternalIdResponseMessage">
+        <part name="parameters" element="tns:GetRocketByExternalIdResponse"/>
+    </message>
+    <message name="GetAllRocketsRequestMessage">
+        <part name="parameters" element="tns:GetAllRocketsRequest"/>
+    </message>
+    <message name="GetAllRocketsResponseMessage">
+        <part name="parameters" element="tns:GetAllRocketsResponse"/>
+    </message>
+    <message name="GetPayloadByExternalIdRequestMessage">
+        <part name="parameters" element="tns:GetPayloadByExternalIdRequest"/>
+    </message>
+    <message name="GetPayloadByExternalIdResponseMessage">
+        <part name="parameters" element="tns:GetPayloadByExternalIdResponse"/>
+    </message>
+    <message name="GetAllPayloadsRequestMessage">
+        <part name="parameters" element="tns:GetAllPayloadsRequest"/>
+    </message>
+    <message name="GetAllPayloadsResponseMessage">
+        <part name="parameters" element="tns:GetAllPayloadsResponse"/>
+    </message>
+    <message name="GetLaunchpadByExternalIdRequestMessage">
+        <part name="parameters" element="tns:GetLaunchpadByExternalIdRequest"/>
+    </message>
+    <message name="GetLaunchpadByExternalIdResponseMessage">
+        <part name="parameters" element="tns:GetLaunchpadByExternalIdResponse"/>
+    </message>
+    <message name="GetAllLaunchpadsRequestMessage">
+        <part name="parameters" element="tns:GetAllLaunchpadsRequest"/>
+    </message>
+    <message name="GetAllLaunchpadsResponseMessage">
+        <part name="parameters" element="tns:GetAllLaunchpadsResponse"/>
+    </message>
+    <message name="GetLaunchByExternalIdRequestMessage">
+        <part name="parameters" element="tns:GetLaunchByExternalIdRequest"/>
+    </message>
+    <message name="GetLaunchByExternalIdResponseMessage">
+        <part name="parameters" element="tns:GetLaunchByExternalIdResponse"/>
+    </message>
+    <message name="GetAllLaunchesRequestMessage">
+        <part name="parameters" element="tns:GetAllLaunchesRequest"/>
+    </message>
+    <message name="GetAllLaunchesResponseMessage">
+        <part name="parameters" element="tns:GetAllLaunchesResponse"/>
+    </message>
+    <message name="CreateLaunchpadRequestMessage">
+        <part name="parameters" element="tns:CreateLaunchpadRequest"/>
+    </message>
+    <message name="CreateLaunchpadResponseMessage">
+        <part name="parameters" element="tns:CreateLaunchpadResponse"/>
+    </message>
+    <message name="CreateLaunchRequestMessage">
+        <part name="parameters" element="tns:CreateLaunchRequest"/>
+    </message>
+    <message name="CreateLaunchResponseMessage">
+        <part name="parameters" element="tns:CreateLaunchResponse"/>
+    </message>
+    <message name="CreateRocketRequestMessage">
+        <part name="parameters" element="tns:CreateRocketRequest"/>
+    </message>
+    <message name="CreateRocketResponseMessage">
+        <part name="parameters" element="tns:CreateRocketResponse"/>
+    </message>
+    <message name="CreatePayloadRequestMessage">
+        <part name="parameters" element="tns:CreatePayloadRequest"/>
+    </message>
+    <message name="CreatePayloadResponseMessage">
+        <part name="parameters" element="tns:CreatePayloadResponse"/>
+    </message>
+
+    <message name="UpdateLaunchpadRequestMessage">
+        <part name="parameters" element="tns:UpdateLaunchpadRequest"/>
+    </message>
+    <message name="UpdateLaunchpadResponseMessage">
+        <part name="parameters" element="tns:UpdateLaunchpadResponse"/>
+    </message>
+    <message name="UpdateLaunchRequestMessage">
+        <part name="parameters" element="tns:UpdateLaunchRequest"/>
+    </message>
+    <message name="UpdateLaunchResponseMessage">
+        <part name="parameters" element="tns:UpdateLaunchResponse"/>
+    </message>
+    <message name="UpdateRocketRequestMessage">
+        <part name="parameters" element="tns:UpdateRocketRequest"/>
+    </message>
+    <message name="UpdateRocketResponseMessage">
+        <part name="parameters" element="tns:UpdateRocketResponse"/>
+    </message>
+    <message name="UpdatePayloadRequestMessage">
+        <part name="parameters" element="tns:UpdatePayloadRequest"/>
+    </message>
+    <message name="UpdatePayloadResponseMessage">
+        <part name="parameters" element="tns:UpdatePayloadResponse"/>
+    </message>
+
+    <message name="DeleteRocketByExternalIdRequestMessage">
+        <part name="parameters" element="tns:DeleteRocketByExternalIdRequest"/>
+    </message>
+    <message name="DeleteRocketByExternalIdResponseMessage">
+        <part name="parameters" element="tns:DeleteRocketByExternalIdResponse"/>
+    </message>
+    <message name="DeletePayloadByExternalIdRequestMessage">
+        <part name="parameters" element="tns:DeletePayloadByExternalIdRequest"/>
+    </message>
+    <message name="DeletePayloadByExternalIdResponseMessage">
+        <part name="parameters" element="tns:DeletePayloadByExternalIdResponse"/>
+    </message>
+    <message name="DeleteLaunchpadByExternalIdRequestMessage">
+        <part name="parameters" element="tns:DeleteLaunchpadByExternalIdRequest"/>
+    </message>
+    <message name="DeleteLaunchpadByExternalIdResponseMessage">
+        <part name="parameters" element="tns:DeleteLaunchpadByExternalIdResponse"/>
+    </message>
+    <message name="DeleteLaunchByExternalIdRequestMessage">
+        <part name="parameters" element="tns:DeleteLaunchByExternalIdRequest"/>
+    </message>
+    <message name="DeleteLaunchByExternalIdResponseMessage">
+        <part name="parameters" element="tns:DeleteLaunchByExternalIdResponse"/>
+    </message>
+
+    <message name="FaultMessage">
+        <part name="fault" element="tns:Fault"/>
+    </message>
+
+    <portType name="SpaceXdbServicePortType">
+        <operation name="GetRocketByExternalId">
+            <input message="tns:GetRocketByExternalIdRequestMessage"/>
+            <output message="tns:GetRocketByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetAllRockets">
+            <input message="tns:GetAllRocketsRequestMessage"/>
+            <output message="tns:GetAllRocketsResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetPayloadByExternalId">
+            <input message="tns:GetPayloadByExternalIdRequestMessage"/>
+            <output message="tns:GetPayloadByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetAllPayloads">
+            <input message="tns:GetAllPayloadsRequestMessage"/>
+            <output message="tns:GetAllPayloadsResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetLaunchpadByExternalId">
+            <input message="tns:GetLaunchpadByExternalIdRequestMessage"/>
+            <output message="tns:GetLaunchpadByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetAllLaunchpads">
+            <input message="tns:GetAllLaunchpadsRequestMessage"/>
+            <output message="tns:GetAllLaunchpadsResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetLaunchByExternalId">
+            <input message="tns:GetLaunchByExternalIdRequestMessage"/>
+            <output message="tns:GetLaunchByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="GetAllLaunches">
+            <input message="tns:GetAllLaunchesRequestMessage"/>
+            <output message="tns:GetAllLaunchesResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="CreateLaunchpad">
+            <input message="tns:CreateLaunchpadRequestMessage"/>
+            <output message="tns:CreateLaunchpadResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="CreateLaunch">
+            <input message="tns:CreateLaunchRequestMessage"/>
+            <output message="tns:CreateLaunchResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="CreateRocket">
+            <input message="tns:CreateRocketRequestMessage"/>
+            <output message="tns:CreateRocketResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="CreatePayload">
+            <input message="tns:CreatePayloadRequestMessage"/>
+            <output message="tns:CreatePayloadResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+
+        <operation name="UpdateLaunchpad">
+            <input message="tns:UpdateLaunchpadRequestMessage"/>
+            <output message="tns:UpdateLaunchpadResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="UpdateLaunch">
+            <input message="tns:UpdateLaunchRequestMessage"/>
+            <output message="tns:UpdateLaunchResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="UpdateRocket">
+            <input message="tns:UpdateRocketRequestMessage"/>
+            <output message="tns:UpdateRocketResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="UpdatePayload">
+            <input message="tns:UpdatePayloadRequestMessage"/>
+            <output message="tns:UpdatePayloadResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+
+        <operation name="DeleteRocketByExternalId">
+            <input message="tns:DeleteRocketByExternalIdRequestMessage"/>
+            <output message="tns:DeleteRocketByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="DeletePayloadByExternalId">
+            <input message="tns:DeletePayloadByExternalIdRequestMessage"/>
+            <output message="tns:DeletePayloadByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="DeleteLaunchpadByExternalId">
+            <input message="tns:DeleteLaunchpadByExternalIdRequestMessage"/>
+            <output message="tns:DeleteLaunchpadByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+        <operation name="DeleteLaunchByExternalId">
+            <input message="tns:DeleteLaunchByExternalIdRequestMessage"/>
+            <output message="tns:DeleteLaunchByExternalIdResponseMessage"/>
+            <fault message="tns:FaultMessage" name="Fault"/>
+        </operation>
+
+
+    </portType>
+
+    <binding name="SpaceXdbServiceSoapBinding" type="tns:SpaceXdbServicePortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="GetRocketByExternalId">
+            <soap:operation soapAction="http://example.com/GetRocketByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetAllRockets">
+            <soap:operation soapAction="http://example.com/GetAllRockets"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        
+        <operation name="GetPayloadByExternalId">
+            <soap:operation soapAction="http://example.com/GetPayloadByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetAllPayloads">
+            <soap:operation soapAction="http://example.com/GetAllPayloads"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetLaunchpadByExternalId">
+            <soap:operation soapAction="http://example.com/GetLaunchpadByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetAllLaunchpads">
+            <soap:operation soapAction="http://example.com/GetAllLaunchpads"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetLaunchByExternalId">
+            <soap:operation soapAction="http://example.com/GetLaunchByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="GetAllLaunches">
+            <soap:operation soapAction="http://example.com/GetAllLaunches"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+
+        <operation name="CreateLaunchpad">
+            <soap:operation soapAction="http://example.com/CreateLaunchpad"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="CreateLaunch">
+            <soap:operation soapAction="http://example.com/CreateLaunch"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="CreateRocket">
+            <soap:operation soapAction="http://example.com/CreateRocket"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="CreatePayload">
+            <soap:operation soapAction="http://example.com/CreatePayload"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+
+        <operation name="UpdateLaunchpad">
+            <soap:operation soapAction="http://example.com/UpdateLaunchpad"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="UpdateLaunch">
+            <soap:operation soapAction="http://example.com/UpdateLaunch"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="UpdateRocket">
+            <soap:operation soapAction="http://example.com/UpdateRocket"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="UpdatePayload">
+            <soap:operation soapAction="http://example.com/UpdatePayload"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+
+        <operation name="DeleteRocketByExternalId">
+            <soap:operation soapAction="http://example.com/DeleteRocketByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="DeletePayloadByExternalId">
+            <soap:operation soapAction="http://example.com/DeletePayloadByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="DeleteLaunchpadByExternalId">
+            <soap:operation soapAction="http://example.com/DeleteLaunchpadByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="DeleteLaunchByExternalId">
+            <soap:operation soapAction="http://example.com/DeleteLaunchByExternalId"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="Fault">
+                <soap:fault name="Fault" use="literal"/>
+            </fault>
+        </operation>
+
+    </binding>
+
+    <service name="SpaceXdbService">
+        <port name="SpaceXdbServiceSoapPort" binding="tns:SpaceXdbServiceSoapBinding">
+            <soap:address location="http://localhost:8081/spacexdbservice"/>
+        </port>
+    </service>
+</definitions>

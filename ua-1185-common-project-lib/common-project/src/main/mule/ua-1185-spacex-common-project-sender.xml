@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="ua-1185-spacex-common-project-impl-mail-Sub_Flow" doc:id="9ddae848-0513-4442-a532-ddfed0989cca" >
+		<async doc:name="Async" doc:id="b508f3d4-07fe-49ac-b70f-5f32a8dcf459" >
+			<try doc:name="Try" doc:id="6c2af573-8426-4f42-983e-480737e7e48d" >
+				<azure-key-vault:get-secret doc:name="Get Secret email CP" doc:id="7fdf7b39-eaec-43e4-8a8b-6c7fa4941c00" config-ref="Azure_Key_Vault_Config_Common_project" name="report-mail" target="secrets" targetValue="#[read(payload.value as String)]"/>
+				<email:send doc:name="Send error email to report mail box CP" doc:id="cba1b9c4-f0a9-46a5-9426-4f1b9dafc052" config-ref="Email_SMTP_Common_project" fromAddress="#[vars.secrets.fromaddres]" subject="Error Log" >
+					<email:to-addresses >
+						<email:to-address value="#[vars.secrets.toaddres]" />
+					</email:to-addresses>
+					<email:body contentType="text/plain" >
+						<email:content ><![CDATA[#[(vars.ERROR_MESSAGE."logType" default "ERROR: ") ++ 
+(vars.ERROR_MESSAGE."description" default " "  ) ++
+"." ++
+(vars.ERROR_MESSAGE."source" default " " ) ++
+". Error details: {" ++ 
+(vars.ERROR_MESSAGE."message" default " ") ++ 
+"," ++ 
+(vars.ERROR_MESSAGE."code" default 500) ++ 
+"}"]]]></email:content>
+					</email:body>
+				</email:send>
+				<logger level="INFO" doc:name="Logger  mail connector" doc:id="76e6155c-44a8-4043-ae40-878bef37bce2" message="SUCCESS: Sended error mail mesages . Common project" />
+				<error-handler ref="ua-1185-spacex-common-project-mail-Error_Handler" />
+			</try>
+		</async>
+	</sub-flow>
+	<sub-flow name="ua-1185-spacex-common-project-impl-salesforce-Sub_Flow" doc:id="4effccd5-9694-484d-b657-fa3874a5bc0c" >
+		<async doc:name="Async" doc:id="0bd6676b-692d-4de5-bd36-6b382939796c" >
+			<try doc:name="Try" doc:id="15d5188c-70e5-4ad4-bfbe-820d52634671" >
+				<azure-key-vault:get-secret doc:name="Get Secret key-case" doc:id="d424a45e-0299-4c27-b4c4-431f7d4d0f50" config-ref="Azure_Key_Vault_Config_Common_project" name="key-case" target="secretsCase" targetValue="#[read(payload.value as String)]"/>
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;[{&#10;	"Status": "Working",&#10;	"Origin": "Web",&#10;	"Description": vars.ERROR_MESSAGE."description" default " ",&#10;	"Subject": vars.ERROR_MESSAGE."source" default " ",&#10;	"Priority": "High"&#10;}]]' doc:name="Set Variable request body" doc:id="110f15b0-43b0-490f-b183-c685d38ad790" variableName="requestBody" />
+				<http:request method="#[vars.secretsCase.'method']" doc:name="Request to spaceX Case" doc:id="c70560f2-1a1b-4088-a071-f284c97f7723" config-ref="HTTP_Request_config_to_log_in_Case_Common_project" path="#[vars.secretsCase.'base-path']" sendBodyMode="ALWAYS" >
+					<http:body ><![CDATA[#[vars.requestBody]]]></http:body>
+				</http:request>
+				<logger level="INFO" doc:name="Logger  noification to salesforce case " doc:id="d42bab59-cee5-4987-975d-6c39bf564a11" message="SUCCESS: Sended noification to salesforce case . Common project" />
+				<error-handler ref="ua-1185-spacex-common-project-salesforce-Error_Handler" />
+			</try>
+		</async>
+	</sub-flow>
+</mule>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="common-error-handlerError_Handler" doc:id="7fdd0bf9-884e-450a-9cca-8b15f34e2c5b" >
+		<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="aa099fca-4d4d-4650-a1a1-fea3778c1a29" type="VALIDATION:INVALID_SIZE">
+			<ee:transform doc:name="Set Current Operation" doc:id="2e325be8-0d7b-4acc-a6c9-a913ac12c050" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+output application/java
+---
+'data_retrieving']]></ee:set-variable>
+					<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "logType":"Error: ",
+    "code": error.dslSource,
+    "message": error.errorMessage.payload,
+    "errorType": error.errorType.identifier,
+    "dateTime": now(),
+    "description": error.description,
+    "source": error.failingComponent
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Create Report" doc:id="8619fc85-5985-479e-b338-e1f6ec62d715" name="createReporForErrorJob"/>
+		</on-error-propagate>
+		<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="edbba869-4590-4719-8702-d40683d66889" type="WSC:BAD_REQUEST">
+			<ee:transform doc:name="Set Current Operation" doc:id="f1c66d58-66cb-4b20-b806-59166314ce07">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="currentOperation"><![CDATA[%dw 2.0
+output application/java
+---
+'data_retrieving']]></ee:set-variable>
+					<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "logType":"Error: ",
+    "code": error.dslSource,
+    "message": error.errorMessage.payload,
+    "errorType": error.errorType.identifier,
+    "dateTime": now(),
+    "description": error.description,
+    "source": error.failingComponent
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Create Report" doc:id="1310f15b-785f-47ad-a22c-e4063660f887" name="createReporForErrorJob" />
+		</on-error-continue>
+		<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="881571be-205f-4511-9754-7073a5c5d397" type="HTTP:BAD_REQUEST">
+			<ee:transform doc:name="Set Current Operation" doc:id="4d8cdd69-8093-42ee-b5ba-3d2dae155b67" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+output application/java
+---
+"database_interaction"]]></ee:set-variable>
+					<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "logType":"Error: ",
+    "code": error.dslSource,
+    "message": error.errorMessage.payload,
+    "errorType": error.errorType.identifier,
+    "dateTime": now(),
+    "description": error.description,
+    "source": error.failingComponent
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Create Report" doc:id="f039db0d-306f-447c-82fe-1d8ec065762c" name="createReporForErrorJob"/>
+		</on-error-continue>
+		<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="2b98cc6d-1511-45cb-9d69-1ebec4d14a0e" type="WSC:CANNOT_DISPATCH">
+			<ee:transform doc:name="Set Current Operation" doc:id="0786e604-1a50-4b07-84ef-d62331750dca" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "logType":"Error: ",
+    "code": error.dslSource,
+    "message": error.errorMessage.payload,
+    "errorType": error.errorType.identifier,
+    "dateTime": now(),
+    "description": error.description,
+    "source": error.failingComponent
+}]]></ee:set-variable>
+					<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+output application/java
+---
+'data_retrieving']]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="e9e4af44-86f5-4193-9d7f-69c6e0c98b2f" name="createReporForErrorJob"/>
+		</on-error-continue>
+		<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="3d40a29a-d57a-4c9f-9eb7-4fcfe1b48747" type="PROCESS:DATA_DEFINITION">
+			<ee:transform doc:name="Set Current Operation" doc:id="02a6d073-326f-44f0-bb9c-f82f85a81d1a" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+output application/java
+---
+'data_preparations']]></ee:set-variable>
+					<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "logType":"Error: ",
+    "code": error.dslSource,
+    "message": error.errorMessage.payload,
+    "errorType": error.errorType.identifier,
+    "dateTime": now(),
+    "description": error.description,
+    "source": error.failingComponent
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="f268c645-41c2-4f48-8e35-3628f92cccac" name="createReporForErrorJob"/>
+		</on-error-propagate>
+	</error-handler>
+</mule>

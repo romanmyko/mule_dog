@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+	<sub-flow name="startProcessFlow" doc:id="64ddf78d-ce9f-414f-a25a-b8221f3a0054" >
+		<set-variable value="#[attributes.queryParams.workingMode as Boolean]" doc:name="Mode" doc:id="92bb2ef2-decb-4aff-850a-21efe3be0b97" variableName="mode"/>
+				<os:clear doc:name="Clear OS" doc:id="5d4def45-0499-4562-ba26-09e755956080" objectStore="Object_store_sync"/>
+		<os:store doc:name="Store result_mode" doc:id="c8ab4071-deca-40bf-ad69-ac578baad330" key='result_mode_report' objectStore="Object_store_sync">
+							<os:value><![CDATA[#[%dw 2.0
+output application/json
+fun mode(boo) = if(boo) "WORKING" else "SAFETY"
+---
+mode(vars.mode)]]]></os:value>
+						</os:store>
+		<flow-ref doc:name="Entities set flow" doc:id="f05355ff-1dd2-43f3-a24e-f6a4983a004c" name="entitiesSetFlow"/>
+		<ee:transform doc:name="Finish message" doc:id="ab50791f-068e-4ec9-bb33-c561fe25fe0e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+"The process of creating and updating data has started. 
+Wait a moment while the data is processed and the report is generated."]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Finish synchronization logger" doc:id="3a9621dd-d9c7-4cc9-81d0-cbcac1cedcee" message="SUCCESS: Synchronization process was finished." />
+	</sub-flow>
+	<sub-flow name="entitiesSetFlow" doc:id="a8718d65-be9f-4ee0-b5a0-e7d78c070c69" >
+		<set-payload value='#[{&#10;    "entity": "Payloads",&#10;    "entityFields": "externalId, name, type, weight, orbit, apoapsis, periapsis",&#10;    "externalField": "id, name, type, mass_kg, orbit, apoapsis_km, periapsis_km"&#10;}]' doc:name="Set Payloads" doc:id="a7d5a123-9a6a-43ea-86a1-2257b615d472" />
+		<logger level="INFO" doc:name="Start of the payloads synchronization process logger" doc:id="1a8fbb04-1086-44c7-910b-16738984b4b3" message="SUCCESS: Start of the payloads synchronization process." />
+		<flow-ref doc:name="To infoGather main process flow" doc:id="3e0c48d3-7ce1-4f51-b797-097c9c8e7e1f" name="infoGatherFlow" />
+		<set-payload value='#[{&#10;    "entity": "Launchpads",&#10;    "entityFields": "externalId, name, locality, region, status",&#10;    "externalField": "id, name, locality, region, status"&#10;}]' doc:name="Set Launchpads" doc:id="ecb76145-10ef-47b9-935d-26b287d2cb17" />
+		<logger level="INFO" doc:name="Start of the launchpads synchronization process logger" doc:id="c19684f9-ecf9-4bcd-9aab-060f0691e776" message="SUCCESS: Start of the launchpads synchronization process." />
+		<flow-ref doc:name="To infoGather main process flow" doc:id="c96b0d2d-a70f-4997-9ea1-33fc0176c392" name="infoGatherFlow" />
+		<set-payload value='#[{&#10;    "entity": "Rockets",&#10;    "entityFields": "externalId, name, active, stages, costPerLaunch, description",&#10;    "externalField": "id, name, active, stages, cost_per_launch, description"&#10;}]' doc:name="Set Rockets" doc:id="a6aed913-44a6-4577-8543-dd8381018b82" />
+		<logger level="INFO" doc:name="Start of the rockets synchronization process logger" doc:id="eaa064b1-f6b2-419d-9084-882df0a197cc" message="SUCCESS: Start of the rockets synchronization process." />
+		<flow-ref doc:name="To infoGather main process flow" doc:id="683b216b-e5ea-4359-8f20-844e881d8a4c" name="infoGatherFlow" />
+	</sub-flow>
+	<sub-flow name="infoGatherFlow" doc:id="9624b1e4-e65f-4596-9a65-a794ed517122" >
+		<ee:transform doc:name="Vars_entity/extenalFields/entityFields" doc:id="eeed3ea5-1c53-4846-a35a-30995d119a13" >
+			<ee:message >
+			</ee:message>
+				<ee:variables>
+				<ee:set-variable variableName="entity"><![CDATA[payload.entity]]></ee:set-variable>
+				<ee:set-variable variableName="entityFields"><![CDATA[payload.entityFields]]></ee:set-variable>
+				<ee:set-variable variableName="externalField"><![CDATA[payload.externalField]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="c4b40e58-6138-4237-8345-8c92dacabcf3">
+			<http:request method="GET" doc:name="Request query to SpaceX" doc:id="f7b12b30-1994-42d2-9c73-f72c3ab3cd71" config-ref="HTTP_Request_configuration_SpaceX" path='#["api/" ++ lower(vars.entity)]' />
+			<error-handler ref="ua-1185-spacex-process-api-sync3-spacex-Error_Handler" />
+		</try>
+		<logger level="INFO" doc:name="Data from SpaceX received logger" doc:id="25ba0e12-209d-4940-ab31-994e8095c69a" message="SUCCESS: Data from SpaceX received." />
+		<ee:transform doc:name="Vars_entityFromSpaceX/spilledEntity/requestCreate/Update" doc:id="36ad8479-f92a-463c-92c5-aabe5ece4693" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="entityFromSpaceX" ><![CDATA[%dw 2.0
+output application/json
+var entityFieldsList = vars.entityFields splitBy(",") map ((item) -> trim(item))
+var externalFieldsList = vars.externalField splitBy(",") map ((item) -> trim(item))
+fun isNull(k, v) = if ( (k == "periapsis" or k == "apoapsis" or k == "weight") and v == null ) 0 
+else if ( k == "orbit" and v == null ) "-"  
+else v
+---
+payload map ((obj) -> 
+    entityFieldsList map ((ent, index) -> 
+{
+	(ent): isNull(ent, obj[externalFieldsList[index]])
+}
+        ) reduce ((acc, item) -> acc ++ item))]]></ee:set-variable>
+				<ee:set-variable variableName="requestCreateString" ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+---
+"roc:Create" ++ (substring (vars.entity as String, 0, sizeOf(vars.entity as String) - 1)) ++ "Request"]]></ee:set-variable>
+				<ee:set-variable variableName="requestUpdateString" ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+---
+"roc:Update" ++ (substring (vars.entity as String, 0, sizeOf(vars.entity as String) - 1)) ++ "Request"]]></ee:set-variable>
+				<ee:set-variable variableName="splitedEntityFields" ><![CDATA[vars.entityFields as String splitBy ", "]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="To batch flow" doc:id="e22dd25e-2ceb-4fb1-8d24-0ad0959e2501" name="batchFlow"/>
+	</sub-flow>
+	<flow name="batchFlow" doc:id="996a98d1-d9c8-479a-9193-f437f7a90262" >
+		<batch:job jobName="Batch_Job" doc:id="c4e1fe9e-d880-4a37-90e0-20993949dd17" maxFailedRecords="100">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="2f64c4aa-1deb-4dcd-b429-a68a6b3cf511" >
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="648e1ac1-6ef2-4b5c-9618-a0c4e3615897" size="300">
+						<flow-ref doc:name="To agregation flow" doc:id="bf61c0ec-029c-4ca3-99dc-927fb0ccc0d5" name="batchAgregationFlow"/>
+					</batch:aggregator>
+					<flow-ref doc:name="To batch step flow" doc:id="367a466c-47a1-4a0c-a2bd-b0777573c0ee" name="batchStepFlow"/>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+		<error-handler ref="ua-1185-spacex-process-api-sync3-db-Error_Handler" />
+	</flow>
+	<sub-flow name="batchStepFlow" doc:id="592b967e-8f92-4866-bb3c-4c69813e0a4b" >
+		<set-variable value="#[payload.id]" doc:name="ExternalId" doc:id="58097e0b-48a6-4bfe-977d-873c5612bcfc" variableName="externalId" />
+		<ee:transform doc:name="Vars_checkErrors/request/spaceXCurrent" doc:id="d25717f7-c20a-4304-b2d6-426a4ff7c071">
+						<ee:message />
+						<ee:variables>
+							<ee:set-variable variableName="checkErrorMysql"><![CDATA[null]]></ee:set-variable>
+							<ee:set-variable variableName="checkErrorMongo"><![CDATA[null]]></ee:set-variable>
+				<ee:set-variable variableName="requestGetAllByExternalIdRequest" ><![CDATA[%dw 2.0
+output application/xml writeDeclaration = false
+import * from dw::core::Strings
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+var requestByExternalId = "roc:Get" ++ (substring (vars.entity as String, 0, sizeOf(vars.entity as String) - 1)) ++ "ByExternalIdRequest"
+var requestEntityById = {
+	(requestByExternalId): {
+		externalId: (vars.externalId)
+	}
+}
+---
+{
+	soapenv#Envelope @("xmlns:roc": "http://example.com/rocketservice"): {
+        soapenv#Header: null,
+		soapenv#Body: requestEntityById
+	}
+}]]></ee:set-variable>
+				<ee:set-variable variableName="spaceXCurrent" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.entityFromSpaceX filter(((item, index) -> vars.entityFromSpaceX[index].externalId==vars.externalId)))[0]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+		<flow-ref doc:name="To MySQL flow" doc:id="188ca87d-cdb5-48a3-b7b3-05abfa77afe4" name="mysqlStepFlow" />
+		<flow-ref doc:name="To Mongo flow" doc:id="d30a7ea2-8b07-4f5b-b2d0-0938af701b01" name="mongoStepFlow" />
+		<ee:transform doc:name="Prepare to agregation" doc:id="a76c6207-54fc-4164-89c1-cdc010f24ff0">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(vars.externalId): {
+(if(vars.checkErrorMysql == null) "mysql" : "fault"
+else if(vars.mysqlOutput != "") "mysql" : vars.checkErrorMysql else null
+),
+(if(vars.checkErrorMongo == null) "mongo" : "fault"
+else if(vars.mongoOutput != "") "mongo" : vars.checkErrorMongo else null )
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+	</sub-flow>
+	<sub-flow name="batchAgregationFlow" doc:id="781fe496-db20-4e5d-bb74-3ddd4f6833bc" >
+		<ee:transform doc:name="Prepare data" doc:id="4842ba4d-86be-4d65-bca5-36a9d75be4a2">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item) -> read(item, "application/json"))]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+		<ee:transform doc:name="Vars_fault create update/mysql mongo" doc:id="7335d984-f172-4d83-888e-e5b9f59777d5" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="fault_mysql" ><![CDATA[%dw 2.0
+output application/json
+---
+fault_mysql: payload map ((item) -> 
+    item mapObject ((value, key) -> 
+      (key): value filterObject ((value, key) -> 
+      	(key as String == "mysql" and value == "fault")
+      )) filterObject ((value) -> value.mysql != null)) filter ((item) -> !isEmpty(item))]]></ee:set-variable>
+				<ee:set-variable variableName="fault_mongo" ><![CDATA[%dw 2.0
+output application/json
+---
+fault_mongo: payload map ((item) -> 
+    item mapObject ((value, key) -> 
+      (key): value filterObject ((value, key) ->  
+      	(key as String == "mongo" and value == "fault")
+      )) filterObject ((value) -> value.mongo != null)) filter ((item) -> !isEmpty(item))]]></ee:set-variable>
+				<ee:set-variable variableName="create_mysql" ><![CDATA[%dw 2.0
+output application/json
+---
+create_mysql: payload map ((item, index) -> 
+	item mapObject ((value, key, index) -> 
+		(key): value filterObject ((value, key, index) -> 
+			key as String =="mysql" and value != "fault"
+		) then ((result) -> result mapObject ((value, key, index) -> 
+			value filterObject ((value, key, index) -> key as String contains "Create")
+		))
+	) filterObject ((value, key) -> 
+      !isEmpty(value)
+    )) filter (!isEmpty($))]]></ee:set-variable>
+				<ee:set-variable variableName="create_mongo" ><![CDATA[%dw 2.0
+output application/json
+---
+create_mongo: payload map ((item, index) -> 
+ item mapObject ((value, key, index) -> 
+ (key): value filterObject ((value, key, index) -> 
+ 	key as String =="mongo" and value != "fault"
+ ) then ((result) -> result mapObject ((value, key, index) -> 
+ 	value filterObject ((value, key, index) -> 
+ 		key as String contains "Create"
+ 	)
+ ))) filterObject ((value, key) -> 
+      !isEmpty(value)
+    )) filter (!isEmpty($))]]></ee:set-variable>
+				<ee:set-variable variableName="update_mysql" ><![CDATA[%dw 2.0
+output application/json
+---
+  update_mysql: payload map ((item, index) -> 
+    item mapObject ((value, key, index) -> 
+      (key): value filterObject ((value, key, index) -> 
+        key as String == "mysql" and value != "fault"
+      ) then ((result) -> 
+        result mapObject ((value, key, index) -> 
+          value filterObject ((value, key, index) -> 
+            key as String contains "Update"
+          )
+        )
+      )
+    ) 
+    filterObject ((value, key) -> 
+      !isEmpty(value)
+    )
+  ) 
+  filter (!isEmpty($))]]></ee:set-variable>
+				<ee:set-variable variableName="update_mongo" ><![CDATA[%dw 2.0
+output application/json
+---
+  update_mongo: payload map ((item, index) -> 
+    item mapObject ((value, key, index) -> 
+      (key): value filterObject ((value, key, index) -> 
+        key as String == "mongo" and value != "fault"
+      ) then ((result) -> 
+        result mapObject ((value, key, index) -> 
+          value filterObject ((value, key, index) -> 
+            key as String contains "Update"
+          )
+        )
+      )
+    ) 
+    filterObject ((value, key) -> 
+      !isEmpty(value)
+    )
+  ) 
+  filter (!isEmpty($))]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<os:store doc:name="Store mysql report" doc:id="b5449cb1-d93e-4a21-ac74-3ce9ed15cba1" key='#[vars.entity as String ++ "_result_mysql_report"]' objectStore="Object_store_sync" >
+			<os:value ><![CDATA[#[%dw 2.0
+output text/plain 
+
+var fault_mysql = (vars.fault_mysql.fault_mysql map ((item) -> item pluck ((value, key) -> key) joinBy ", "))joinBy ", "
+
+var create_mysql = vars.create_mysql.create_mysql map ((item, index) -> item mapObject ((value, key, index) -> value mapObject ((value, key, index) -> value)))
+var text_create_mysql = create_mysql map ((item) -> vars.splitedEntityFields map ((field) -> field ++ ": " ++ (item[field])) joinBy ", ") joinBy "\n"
+
+var update_mysql = vars.update_mysql.update_mysql map ((item, index) -> item mapObject ((value, key, index) -> (key): value mapObject ((value, key, index) -> value)))
+var update_mysql_mod = update_mysql map ((item) -> item mapObject ((value, key, index) -> ("externalId: " ++ (key as String)) : value mapObject ((value, key, index) -> (key) : "old "++ (key) ++ ": " ++ value.old ++ " -> new " ++ (key) ++ ": " ++ value.new)))
+var text_update_mysql = update_mysql_mod map ((item, index) -> item pluck ((value, key, index) -> key ++ ", " ++ (value pluck ((value, key, index) -> key ++" - "++ value) joinBy  ", "))joinBy  "") joinBy  " \n"
+---
+"\n" ++ vars.entity as String ++ ":" ++
+(if(!isEmpty(text_create_mysql))("\nCREATED\n"++ text_create_mysql as String) else "") ++
+(if(!isEmpty(text_update_mysql))("\nUPDATED\n"++ text_update_mysql as String) else "") ++
+(if(!isEmpty(fault_mysql)) ("\nFAILED\n"++ fault_mysql as String) else "")]]]></os:value>
+		</os:store>
+		<os:store doc:name="Store mongo report" doc:id="e065e835-5552-452a-9e69-a081d431f026" key='#[vars.entity as String ++ "_result_mongo_report"]' objectStore="Object_store_sync" >
+			<os:value ><![CDATA[#[%dw 2.0
+output text/plain
+
+var fault_mongo = (vars.fault_mongo.fault_mongo map ((item) -> item pluck ((value, key) -> key) joinBy ", "))joinBy ", "
+
+var create_mongo = vars.create_mongo.create_mongo map ((item, index) -> item mapObject ((value, key, index) -> value mapObject ((value, key, index) -> value)))
+var text_create_mongo = create_mongo map ((item) -> vars.splitedEntityFields map ((field) -> field ++ ": " ++ (item[field])) joinBy ", ") joinBy "\n"
+
+var update_mongo = vars.update_mongo.update_mongo map ((item, index) -> item mapObject ((value, key, index) -> (key): value mapObject ((value, key, index) -> value)))
+var update_mongo_mod = update_mongo map ((item) -> item mapObject ((value, key, index) -> ("externalId: " ++ (key as String)) : value mapObject ((value, key, index) -> (key) : "old "++ (key) ++ ": " ++ value.old ++ " -> new " ++ (key) ++ ": " ++ value.new)))
+var text_update_mongo = update_mongo_mod map ((item, index) -> item pluck ((value, key, index) -> key ++ ", " ++ (value pluck ((value, key, index) -> key ++" - "++ value) joinBy  ", "))joinBy  "") joinBy  " \n"
+---
+"\n" ++ vars.entity as String ++ ":" ++
+(if(!isEmpty(text_create_mongo))("\nCREATED\n"++ text_create_mongo as String) else "") ++
+(if(!isEmpty(text_update_mongo))("\nUPDATED\n"++ text_update_mongo as String) else "") ++
+(if(!isEmpty(fault_mongo)) ("\nFAILED\n"++ fault_mongo as String) else "")]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<sub-flow name="mysqlStepFlow" doc:id="da10bdb5-e357-4dc1-acdc-8dbd3d39f981">
+		<try doc:name="Try" doc:id="9c3434f0-f6e0-404d-bdd8-97301149bde0">
+						<http:request method="POST" doc:name="Get query to MySQL" doc:id="8b0b6373-a016-48f6-9b1e-f6eb3d01a17b" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+							<http:body><![CDATA[#[vars.requestGetAllByExternalIdRequest]]]></http:body>
+						</http:request>
+						<set-variable value='#[%dw 2.0&#10;ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;output application/json &#10;var records = payload mapObject ((value) -&gt; value mapObject ((value) -&gt; value))&#10;var body = records mapObject ((value) -&gt; value)&#10;var bodyString = valuesOf(body)[0]&#10;---&#10;if(bodyString == "There is not any matching data for provided id.") {} else body]' doc:name="MysqlCurrent" doc:id="e2527f3b-c4d0-47d2-9a11-76da2ee6e060" variableName="mysqlCurrent" />
+						<ee:transform doc:name="MysqlOutput" doc:id="7de5e1fe-1385-4d28-9767-af20f7ff0723">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="mysqlOutput"><![CDATA[%dw 2.0
+output application/json
+fun isFieldDifferent(payloadField, comparisonField) = payloadField != comparisonField
+fun toString(value) = 
+    if ( value == null ) null 
+    else value as String
+fun diffFieldsMysql(field) = 
+    if ( vars.mysqlCurrent[field] == null and vars.spaceXCurrent[field] == null ) true 
+    else if ( vars.mysqlCurrent[field] == null or vars.spaceXCurrent[field] == null ) false 
+    else if ( isFieldDifferent(toString(vars.mysqlCurrent[field]), toString(vars.spaceXCurrent[field])) ) false
+         else true
+var changeInMysql = vars.splitedEntityFields map ((field) -> {
+	(field): (diffFieldsMysql(field))
+} ) reduce ((acc, item) -> acc ++ item) filterObject ((value) -> !value)
+var create = vars.splitedEntityFields map ((ent, index) -> (ent): (vars.spaceXCurrent[vars.splitedEntityFields[index]]))
+var update = changeInMysql mapObject ((value, key) -> (key) : vars.spaceXCurrent[key])
+var createObj = {
+	(vars.requestCreateString): {
+		(create)
+	}
+}
+var updateObj = {
+	(vars.requestUpdateString): {
+		externalId: vars.externalId,
+		(update)
+	}
+}
+---
+if ( isEmpty(vars.mysqlCurrent) ) createObj else if ( !isEmpty(update) ) updateObj else {}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+			<choice doc:name="Choice" doc:id="a77503b6-503e-44b5-8b62-9021ac9aa828">
+			<when expression="#[vars.mode == true and !isEmpty(vars.mysqlOutput)]">
+				<http:request method="POST" doc:name="Query to MySQL" doc:id="96d5ff41-7a76-49c9-b5ae-1febe2178a38" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+					<http:body><![CDATA[#[%dw 2.0
+output application/xml writeDeclaration = false
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns roc http://example.com/rocketservice
+---
+{
+	soapenv#Envelope @('xmlns:roc': "http://example.com/rocketservice"): {
+		soapenv#Header: null,
+		soapenv#Body: vars.mysqlOutput
+	}
+}]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+				</http:request>
+			</when>
+		</choice>
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;fun getChangedValues(oldObj, newObj) = &#10;  newObj filterObject ((value, key) -&gt; &#10;    oldObj[key] != null and value != oldObj[key]&#10;  ) mapObject ((value, key) -&gt; &#10;    {&#10;	(key): {&#10;		old: oldObj[key],&#10;		new: value&#10;	}&#10;}&#10;  )&#10;var resp = vars.mysqlOutput filterObject ((value, key, index) -&gt; key contains  "Update")&#10;var newRequest = vars.mysqlOutput mapObject ((value) -&gt; value)&#10;var updatedRequest = getChangedValues(vars.mysqlCurrent, newRequest)&#10;---&#10;if ( isEmpty(vars.mysqlOutput) ) {&#10;} else if ( isEmpty(resp) ) vars.mysqlOutput else vars.mysqlOutput mapObject ((value, key, index) -&gt; (key):updatedRequest)]' doc:name="CheckErrorMysql" doc:id="1d08a8a3-c66e-4b99-8666-c77cce2c7dff" variableName="checkErrorMysql" />
+			<error-handler ref="ua-1185-spacex-process-api-sync3-db-Error_Handler" />
+					</try>
+	</sub-flow>
+	<sub-flow name="mongoStepFlow" doc:id="87d7aaef-d5d8-4d5f-9f11-35afc35f0d99" >
+		<try doc:name="Try" doc:id="4472c7bf-60ef-4256-8c90-a36cff6370e5">
+						<http:request method="POST" doc:name="Get query to Mongo" doc:id="408c5788-aec2-4ad7-ab75-246af45b3f45" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+							<http:body><![CDATA[#[vars.requestGetAllByExternalIdRequest]]]></http:body>
+						</http:request>
+						<set-variable value='#[%dw 2.0&#10;ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;output application/json &#10;var records = payload mapObject ((value) -&gt; value mapObject ((value) -&gt; value))&#10;var bodyString = valuesOf(records)[0]&#10;---&#10;if(bodyString == "No result for provided id") {} else bodyString mapObject ((value) -&gt; value)]' doc:name="MongoCurrent" doc:id="1fd62334-6887-4886-a070-900222e967f7" variableName="mongoCurrent" />
+						<ee:transform doc:name="MongoOutput" doc:id="5dbe53e9-a92c-4bc2-bfdc-556ca0d74010">
+						<ee:message />
+						<ee:variables>
+							<ee:set-variable variableName="mongoOutput"><![CDATA[%dw 2.0
+output application/json
+fun isFieldDifferent(payloadField, comparisonField) = payloadField != comparisonField
+fun toString(value) = 
+    if ( value == null ) null 
+    else value as String
+fun diffFieldsMongo(field) = 
+    if ( vars.mongoCurrent[field] == null and vars.spaceXCurrent[field] == null ) true 
+    else if ( vars.mongoCurrent[field] == null or vars.spaceXCurrent[field] == null ) false 
+    else if ( isFieldDifferent(toString(vars.mongoCurrent[field]), toString(vars.spaceXCurrent[field])) ) false
+         else true
+var changeInMongo = vars.splitedEntityFields map ((field) -> {
+	(field): (diffFieldsMongo(field))
+} ) reduce ((acc, item) -> acc ++ item) filterObject ((value) -> !value)
+var create = vars.splitedEntityFields map ((ent, index) -> (ent): (vars.spaceXCurrent[vars.splitedEntityFields[index]]))
+var update = changeInMongo mapObject ((value, key) -> (key) : vars.spaceXCurrent[key])
+var createObj = {
+	(vars.requestCreateString): {
+		(create)
+	}
+}
+var updateObj = {
+	(vars.requestUpdateString): {
+		externalId: vars.externalId,
+		(update)
+	}
+}
+---
+if ( isEmpty(vars.mongoCurrent) ) createObj else if ( !isEmpty(update) ) updateObj else {}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+			<choice doc:name="Choice" doc:id="1970a5c5-95ca-4234-8f2f-b4fac30afecc">
+						<when expression="#[vars.mode == true and !isEmpty(vars.mongoOutput)]">
+				<http:request method="POST" doc:name="Query to Mongo" doc:id="e7a4342f-d193-4271-a940-4168c5e9eee6" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+					<http:body><![CDATA[#[%dw 2.0
+output application/xml writeDeclaration = false
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns roc http://example.com/rocketservice
+---
+{
+	soapenv#Envelope @('xmlns:roc': "http://example.com/rocketservice"): {
+		soapenv#Header: null,
+		soapenv#Body: vars.mongoOutput
+	}
+}]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+				</http:request>
+						</when>
+					</choice>
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;fun getChangedValues(oldObj, newObj) = &#10;  newObj filterObject ((value, key) -&gt; &#10;    oldObj[key] != null and value != oldObj[key]&#10;  ) mapObject ((value, key) -&gt; &#10;    {&#10;	(key): {&#10;		old: oldObj[key],&#10;		new: value&#10;	}&#10;}&#10;  )&#10;var resp = vars.mongoOutput filterObject ((value, key, index) -&gt; key contains  "Update")&#10;var newRequest = vars.mongoOutput mapObject ((value) -&gt; value)&#10;var updatedRequest = getChangedValues(vars.mongoCurrent, newRequest)&#10;---&#10;if ( isEmpty(vars.mongoOutput) ) {&#10;} else if ( isEmpty(resp) ) vars.mongoOutput else vars.mongoOutput mapObject ((value, key, index) -&gt; (key):updatedRequest)]' doc:name="CheckErrorMongo" doc:id="426bdbb5-9874-48db-90e0-60e01511d703" variableName="checkErrorMongo" />
+			<error-handler ref="ua-1185-spacex-process-api-sync3-db-Error_Handler" />
+					</try>
+	</sub-flow>
+</mule>

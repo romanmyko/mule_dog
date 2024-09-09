@@ -1,0 +1,122 @@
+#%RAML 1.0 DataType
+
+displayName: Rocket
+description: Defines the Rockets data type
+
+type: object
+properties:
+  height:
+    type: object
+    properties:
+      meters: number
+      feet: number
+  diameter:
+    type: object
+    properties:
+      meters: number
+      feet: number
+  mass:
+    type: object
+    properties:
+      kg: number
+      lb: number
+  first_stage:
+    type: object
+    properties:
+      thrust_sea_level:
+        type: object
+        properties:
+          kN: number
+          lbf: number
+      thrust_vacuum:
+        type: object
+        properties:
+          kN: number
+          lbf: number
+      reusable: boolean
+      engines: number
+      fuel_amount_tons: number
+      burn_time_sec: number
+  second_stage:
+    type: object
+    properties:
+      thrust:
+        type: object
+        properties:
+          kN: number
+          lbf: number
+      payloads:
+        type: object
+        properties:
+          composite_fairing:
+            type: object
+            properties:
+              height:
+                type: object
+                properties:
+                  meters: number
+                  feet: number
+              diameter:
+                type: object
+                properties:
+                  meters: number
+                  feet: number
+          option_1: string
+      reusable: boolean
+      engines: number
+      fuel_amount_tons: number
+      burn_time_sec: number
+  engines:
+    type: object
+    properties:
+      isp:
+        type: object
+        properties:
+          sea_level: number
+          vacuum: number
+      thrust_sea_level:
+        type: object
+        properties:
+          kN: number
+          lbf: number
+      thrust_vacuum:
+        type: object
+        properties:
+          kN: number
+          lbf: number
+      number: number
+      type: string
+      version: string
+      layout: string
+      engine_loss_max: number
+      propellant_1: string
+      propellant_2: string
+      thrust_to_weight: number
+  landing_legs:
+    type: object
+    properties:
+      number: number
+      material: string
+  payload_weights:
+    type: array
+    items:
+      type: object
+      properties:
+        id: string
+        name: string
+        kg: number
+        lb: number
+  flickr_images: array
+  name: string
+  type: string
+  active: boolean
+  stages: number
+  boosters: number
+  cost_per_launch: number
+  success_rate_pct: number
+  first_flight: string
+  country: string
+  company: string
+  wikipedia: string
+  description: string
+  id: string

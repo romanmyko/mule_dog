@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <azure-key-vault:config name="Azure_Key_Vault_Config_Common_project" doc:name="Azure Key Vault Config" doc:id="bc968d66-d0c8-45a9-8672-f802853867aa" >
+		<azure-key-vault:connection clientId="${AZURE_CLIENT_ID}" tenantId="${AZURE_TENANT_ID}" clientSecret="${AZURE_CLIENT_SECRET}" vaultName="${MULE_AZURE_KEY_VAULT_NAME}" />
+	</azure-key-vault:config>
+	<email:smtp-config name="Email_SMTP_Common_project" doc:name="Email SMTP" doc:id="09d8f36e-bfdb-47b1-8815-c4e29f65c73e" >
+    	<email:smtp-connection host="#[vars.secrets.host]" port="#[vars.secrets.port]" user="#[vars.secrets.user]" password="#[vars.secrets.password]" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.required" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<http:request-config name="HTTP_Request_config_to_log_in_Case_Common_project" doc:name="HTTP Request configuration" doc:id="504eda46-a187-40cf-9330-724fda808e53">
+		<http:request-connection host="#[vars.secretsCase.'host']" port="#[vars.secretsCase.'port']"/>
+	</http:request-config>
+</mule>

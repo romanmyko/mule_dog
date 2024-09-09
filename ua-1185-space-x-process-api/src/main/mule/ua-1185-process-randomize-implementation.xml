@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="launchProcessingsFlow" doc:id="1ba8e518-5fd8-47ba-86ec-a7067efb086b" >
+		<flow-ref doc:name="Get Properties From Config File" doc:id="bf181f42-9124-441d-827c-3caea4bb644b" name="getPropertiesFlow"/>
+		<foreach doc:name="For Each" doc:id="97ff3cbf-4ee1-4c65-85d5-7cb6c71d65ea" collection="#[payload]">
+			<async doc:name="Async" doc:id="08f3d4b9-fa94-4c5c-82f6-3c3ec3ad46c7" >
+				<flow-ref doc:name="Process For Entity" doc:id="fac7eb37-9339-4367-a1a1-8a8919591ad6" name="entitiesProcessingFlow"/>
+			</async>
+		</foreach>
+		<ee:transform doc:name="Return Response For Client" doc:id="61047001-be43-44fb-8b73-779b92031461" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Processes for entities has been started."]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="common-error-handlerError_Handler"/>
+	</flow>
+	<flow name="entitiesProcessingFlow" doc:id="486aa30f-f96b-4ee8-b57e-9cf38e689c8d" >
+		<ee:transform doc:name="Set configurations" doc:id="7abd719a-33c5-4e3b-8bc7-077d4d6f83b9" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="config" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	entityName: payload.'entity-name',
+	fieldsToExclude: payload.'fields-to-skip',
+	defineByField: payload.'define-by-field',
+	deleteCoeff: payload.'delete-coeff',
+	updateCoeff: payload.'update-coeff'
+}]]></ee:set-variable>
+				<ee:set-variable variableName="connectivityConfig" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.'connectivity-config']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Create Entitity Record in Report" doc:id="374dfb8d-0fa6-4080-b153-50315f37117e" name="createEntityInReport" />
+		<flow-ref doc:name="Prepare Data For Delete And Update Operations" doc:id="7e1d7196-3215-4b06-b842-660443ad4193" name="prepareDataForJobsFlow"/>
+		<batch:job jobName="databaseOperationsBatchJob" doc:id="f0d21842-d709-49b8-b961-00679717387b" blockSize="10" maxFailedRecords="-1" maxConcurrency="5">
+			<batch:process-records >
+				<batch:step name="Set_income" doc:id="b264c126-d499-49be-87c9-54c6a733c3d9">
+					<set-variable value="#[payload]" doc:name="Set Income" doc:id="6680180e-1905-4eb6-85b5-bb0043fdf668" variableName="income" />
+				</batch:step>
+				<batch:step name="SQL_Request" doc:id="db34da4f-939f-42f4-bb6b-d65ae05d6c63" acceptExpression='#[vars.income.db == "SQL"]'>
+					<try doc:name="Try" doc:id="0ca3544e-7573-42a6-8561-232f78127a41" >
+						<choice doc:name="Choice" doc:id="1047c18b-ed2e-4493-8ef5-4cf05db71c72">
+						<when expression="#[vars.income.operation == 'delete']">
+							<http:request method="POST" doc:name="Request" doc:id="56fa19b3-802f-48b1-a150-d36639b5fea7" path="/SpaceXdbService/SpaceXdbServiceSoapPort" config-ref="HTTP_Request_configuration_MySQL">
+								<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'sql-delete-request-name' as String): {
+                (vars.config.defineByField as String): vars.income.id
+            }
+        }
+    }
+}]]]></http:body>
+							</http:request>
+						</when>
+						<when expression="#[vars.income.operation == 'update']">
+							<http:request method="POST" doc:name="Request" doc:id="f3337962-42aa-4e18-bdfe-3c7a5219cac6" path="/SpaceXdbService/SpaceXdbServiceSoapPort" config-ref="HTTP_Request_configuration_MySQL">
+								<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'sql-update-request-name' as String): {
+                (vars.config.defineByField as String): vars.income.id,
+                (vars.income.valuesToChange.key as String): vars.income.valuesToChange.value
+            }
+        }
+    }
+}]]]></http:body>
+							</http:request>
+						</when>
+					</choice>
+						<error-handler >
+							<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="07e80bf9-7629-44cc-99d6-0c46a1f9863d" type="ANY">
+								<ee:transform doc:name="Define Current Operation" doc:id="af0e3b55-1976-4373-ab0b-943a880267a0" >
+									<ee:message >
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+
+output application/java
+var currOperation = vars.income.db as String ++ "_" ++ vars.income.operation as String
+---
+currOperation]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+								<flow-ref doc:name="Create Report" doc:id="83f0a8e1-6a1d-42d5-a74e-cd0eae62094d" name="createReporForErrorJob"/>
+							</on-error-propagate>
+						</error-handler>
+					</try>
+					<ee:transform doc:name="Set Record Into Payload" doc:id="02d4d9e7-3a66-471b-a10e-033a4ddc55bb">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.income]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					<batch:aggregator doc:name="Final Report For Database Operations" doc:id="b00e8d1e-9dc5-47a5-9f08-d84337c0885c" size="10">
+						<ee:transform doc:name="Form Report for Successful Operations" doc:id="ef16a6e4-ced7-43a5-a385-2b2cbec19c5f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+fun filterBy(operation) = payload filter ($.operation == operation as String)
+var updateSQL = filterBy('update')
+var deleteSQL = filterBy('delete')
+---
+{
+	successfullyUpdatedSQL: sizeOf(updateSQL),
+	successfullyDeletedSQL: sizeOf(deleteSQL)
+}
+]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="Flow Reference" doc:id="1d41a742-3f19-4bad-8672-c8fa2b8e9318" name="addToReportForEntity"/>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="MONGO_Request" doc:id="2d13d839-e4fe-4df5-b4c4-f8cd8f3a854b" acceptExpression='#[vars.income.db == "MONGO"]'>
+					<try doc:name="Try" doc:id="4cb4e295-bcc9-437f-ae38-e83289b11612" >
+						<choice doc:name="Choice" doc:id="bf868f92-f826-4cfa-be12-de96601b16e1">
+						<when expression="#[vars.income.operation == 'delete']">
+								<http:request method="POST" doc:name="Request" doc:id="5c88bd25-1168-4ac3-bceb-747839ad55fe" path="/api" config-ref="HTTP_Request_configuration_Mongo">
+								<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'mongo-delete-request-name' as String): {
+                externalId: vars.income.id
+            }
+        }
+    }
+}]]]></http:body>
+							</http:request>
+						</when>
+						<when expression="#[vars.income.operation == 'update']">
+								<http:request method="POST" doc:name="Request" doc:id="3e9de4ea-f895-4f42-9701-2a7c8f56508c" path="/api" config-ref="HTTP_Request_configuration_Mongo">
+								<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'mongo-update-request-name' as String): {
+                (vars.config.defineByField as String): vars.income.id,
+                (vars.income.valuesToChange.key as String): vars.income.valuesToChange.value
+            }
+        }
+    }
+}]]]></http:body>
+							</http:request>
+						</when>
+					</choice>
+						<ee:transform doc:name="Set Record Into Payload" doc:id="a31548f3-6929-442f-a7bd-bc3be157218e">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.income]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<error-handler >
+							<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="19c2b2fc-9800-454a-aa65-64bddbd881a3" type="ANY">
+								<ee:transform doc:name="Define Current Operation" doc:id="fc13dcce-6073-4d74-9419-3f13f84edc02" >
+									<ee:message >
+									</ee:message>
+									<ee:variables >
+										<ee:set-variable variableName="currentOperation" ><![CDATA[%dw 2.0
+output application/java
+var currOperation = vars.income.db as String ++ "_" ++ vars.income.operation as String
+---
+currOperation]]></ee:set-variable>
+									</ee:variables>
+								</ee:transform>
+								<flow-ref doc:name="Create Report" doc:id="351f1617-e1b0-43fb-99f2-f180f843f628" name="createReporForErrorJob"/>
+							</on-error-propagate>
+						</error-handler>
+					</try>
+					<batch:aggregator doc:name="Final Report For Database Operations" doc:id="2a0af9b1-b241-49b6-813c-d5b92e9bba22" size="10">
+						<ee:transform doc:name="Set Report Data For Successful Operations" doc:id="4952f382-b167-4abc-bdea-bb9d0e54128c" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+fun filterBy(operation) = payload filter ($.operation == operation as String)
+var updateMONGO = filterBy('update')
+var deleteMONGO = filterBy('delete')
+---
+{
+	successfullyUpdatedMONGO: sizeOf(updateMONGO),
+	successfullyDeletedMONGO: sizeOf(deleteMONGO)
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="Create Report" doc:id="0b0dd45d-ef3c-414e-960b-22db6c9f2977" name="addToReportForEntity"/>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="Final_Report_For_Failed_Operations" doc:id="aa713c53-3e3c-444d-a1db-e2aaa209d84c" acceptPolicy="ONLY_FAILURES">
+					<ee:transform doc:name="Set Record  Into Payload" doc:id="d5702acf-4120-48be-8088-ab4524666542" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.income]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="1d0af863-8a66-4efe-a07b-01d1df6d830b" size="10">
+						<ee:transform doc:name="Set Report Data For Failed Operations" doc:id="36a09dc3-fc04-43be-8313-12df714d92c7" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/java
+fun filterBy(db, operation) = sizeOf(payload filter ($.db == db as String and $.operation == operation as String))
+var report = {
+	failedSQLDelete: filterBy('SQL', 'delete'),
+	failedSQLUpdate: filterBy('SQL', 'update'),
+    failedMONGODelete: filterBy('MONGO', 'delete'),
+    failedMONGOUpdate: filterBy('MONGO', 'update')
+    }
+---
+report filterObject ((value) -> value > 0)]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="Create Report" doc:id="d442e542-c969-451a-a2ac-3cff657ee122" name="addToReportForEntity"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+		<error-handler ref="common-error-handlerError_Handler"/>
+	</flow>
+	<flow name="getPropertiesFlow" doc:id="1b8731a0-2a55-4f47-824d-350d6da42d85" >
+		<file:read doc:name="Read Config File" doc:id="034b38b9-868e-4d47-90c1-28675e3b5010" path="random-properties.json" config-ref="Randomizer_File_Config"/>
+		<ee:transform doc:name="Transform Data To Java Object" doc:id="0e4e01ad-1f12-47c4-9e63-647ac7ccaaae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Prepare Configurations" doc:id="98562f26-d6e2-411f-8c49-a08669f3c5b1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/java
+var common_config = payload.'common-config' as Object
+fun check_config(key, value) = (if(value is Null) common_config[(key)] else value)
+var entities = payload.'entities' as Array
+---
+entities map((item) -> item mapObject ((value, key) ->  {(key): check_config(key, value)}))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="common-error-handlerError_Handler" />
+	</flow>
+	<flow name="getReportFlow" doc:id="4daaa2b9-65ac-4b87-9606-60c791332845" >
+		<flow-ref doc:name="Flow Reference" doc:id="cc8e9be4-46ae-4f63-93fe-e45e966acd5c" name="getPropertiesFlow"/>
+		<ee:transform doc:name="Get Entities Names" doc:id="ec7b4ab1-6e04-4e05-aa89-9e31baaaf940" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+output application/json
+---
+payload map ($.'entity-name' as String ++ "Report")]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="report" ><![CDATA[%dw 2.0
+output application/java
+---
+{}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="a30a2707-f904-4f81-a25d-b0f1727d4551" collection="#[payload]">
+			<set-variable value="#[payload]" doc:name="Set Variable" doc:id="136ef75f-a8cf-4848-abcc-580b0cc23589" variableName="reportName"/>
+			<os:retrieve doc:name="Retrieve Report For Entity" doc:id="ec7afbbf-dbef-435f-867a-87f1abcf6ea9" key="#[vars.reportName]" objectStore="Object_store">
+				<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+			</os:retrieve>
+			<ee:transform doc:name="Add Retrived Report To common Report" doc:id="ce318325-133b-4334-a705-afeb96c76616" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="report" ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/java
+---
+vars.report mergeWith {(vars.reportName): payload}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</foreach>
+		<ee:transform doc:name="Return JSON Report" doc:id="82dd4801-2fa7-4cf3-ada3-a555b4680ca7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.report]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

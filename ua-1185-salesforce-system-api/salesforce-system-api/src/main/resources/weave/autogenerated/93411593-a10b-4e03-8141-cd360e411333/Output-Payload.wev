@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_93411593_a10b_4e03_8141_cd360e411333_Output_Payload = {
+  success: Boolean, 
+  id: String, 
+  _?: Any
+}
+

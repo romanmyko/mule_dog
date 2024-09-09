@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="ua-1185-spacex-APIKit-Error_Handler" doc:id="9e93906c-16a2-4f0b-ab3a-a2a4cd96646f" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0d1a4499-f039-410e-895c-9c1d90ddbf02" type="APIKIT:BAD_REQUEST">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "APIKIT:BAD_REQUEST",&#10;	"dateTime": now(),&#10;	"description": "The server could not understand the request due to invalid syntax",&#10;	"source": "APIKIT"&#10;}]' doc:name="Variable APIKIT:BAD_REQUEST" doc:id="37b8b1b0-0335-4312-88cd-06a747b66439" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="4c8446ba-759d-450d-93a4-b45fc2718dae" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3b66b8a0-cf21-4a17-b0b1-a8a54f810bbe" type="APIKIT:NOT_FOUND">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 404,&#10;	"message": "Not Found",&#10;	"errorType": "APIKIT:NOT_FOUND",&#10;	"dateTime": now(),&#10;	"description": "The requested resource could not be found",&#10;	"source": "APIKIT"&#10;}]' doc:name="Variable APIKIT:NOT_FOUND" doc:id="08c9bb54-d7a9-464d-8271-1699e6a939cd" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="ec46c814-fade-40b0-8c0a-eb0a3c4a6dd7" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="72f1546d-bd33-42aa-8c17-5b921406fcff" type="APIKIT:METHOD_NOT_ALLOWED">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 405,&#10;	"message": "Method Not Allowed",&#10;	"errorType": "APIKIT:METHOD_NOT_ALLOWED",&#10;	"dateTime": now(),&#10;	"description": "The request method is not allowed for the resource",&#10;	"source": "APIKIT"&#10;}]' doc:name="Variable APIKIT:METHOD_NOT_ALLOWED" doc:id="69161ab4-33a1-4ebe-8ba3-8364d88aad8e" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="bd2e519b-bbf5-4bda-bb25-31ea462727f5" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3338a458-0303-49e3-a659-7f477c408eee" type="APIKIT:NOT_ACCEPTABLE">
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	&quot;logType&quot;:&quot;Error: &quot;,&#10;	&quot;code&quot;: 406,&#10;	&quot;message&quot;: &quot;Bad Request&quot;,&#10;	&quot;errorType&quot;: &quot;APIKIT:NOT_ACCEPTABLE&quot;,&#10;	&quot;dateTime&quot;: now(),&#10;	&quot;description&quot;: &quot;The server cannot generate a response that is acceptable according to the request's Accept headers&quot;,&#10;	&quot;source&quot;: &quot;APIKIT&quot;&#10;}]" doc:name="Variable APIKIT:NOT_ACCEPTABLE" doc:id="f9c52284-8163-49b2-bef5-87839f6af492" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="dfb0d088-8766-4204-9e17-053d64881a2c" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-api-Error_Handler" doc:id="0a77169d-ea40-4407-9f22-a7c6cc6bc75d">
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6da5d6b2-e9bd-457d-a90b-17a11a460a57" type="HTTP:NOT_FOUND">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 404,&#10;	"message": "Page Not Found",&#10;	"errorType": "HTTP:NOT_FOUND",&#10;	"dateTime": now(),&#10;	"description": "The requested resource could not be found on the server",&#10;	"source": "HTTP"&#10;}]' doc:name="Variable api HTTP: NOT_FOUND" doc:id="45791eea-8c06-4a84-b63e-025bfdf26769" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference common-project - impl" doc:id="c537f11d-05ac-4666-9896-64106358aec9" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b963f23c-cf10-4ccc-bfb5-0ea1b8eda020" type="HTTP:METHOD_NOT_ALLOWED">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 405,&#10;	"message": "Method Not Allowed",&#10;	"errorType": " HTTP:METHOD_NOT_ALLOWED",&#10;	"dateTime": now(),&#10;	"description": "The request method is not supported for the requested resource",&#10;	"source": "HTTP"&#10;}]' doc:name="Variable api HTTP:METHOD_NOT_ALLOWED" doc:id="95d12996-0d13-4016-bd5e-84275c263632" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference common-project - impl" doc:id="56675d9b-1973-43ab-b9a6-63e4070c9fec" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		</on-error-continue>
+	</error-handler>
+</mule>

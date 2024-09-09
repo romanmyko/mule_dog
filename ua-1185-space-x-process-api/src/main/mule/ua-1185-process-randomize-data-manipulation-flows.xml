@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<flow name="prepareDataForJobsFlow" doc:id="aac5d683-0587-4489-b709-1179fcaf73e5" >
+		<set-variable value="#[[]]" doc:name="Set Recieved Data" doc:id="d3f11fa0-9e7b-42b8-b820-dd6a01dd5360" variableName="data" />
+		<wsc:consume doc:name="Retrieve Data From SQL Database" doc:id="7a868a29-2523-43a3-a1a6-93bd1fc12068" operation="#[(vars.connectivityConfig.'sql-get-request-name' as String) replace &quot;Request&quot; with(&quot;&quot;)]" config-ref="Web_Service_Consumer_Config_SQL">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'sql-get-request-name' as String): null
+        }
+    }
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<ee:transform doc:name="Prepare Data From SQL For Next Step" doc:id="93aa5c07-15d0-4f56-ab60-6b56aa0c3af7">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="data" ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+import * from dw::core::Arrays
+output application/java
+
+
+var responseObj = valuesOf(payload.body as Object)
+var response = flatten(responseObj map ((item) -> valuesOf(item))) filter (($ is Object))
+---
+if(sizeOf(response) > 0)
+flatten(vars.data + (response map ((item) -> item mergeWith {db: "SQL"})))
+else vars.data]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<wsc:consume doc:name="Retrieve Data From MONGO Database" doc:id="8bbbe001-dfbe-4d6e-82d9-0aeef0b9b331" config-ref="Web_Service_Consumer_Config_MONGO" operation="#[(vars.connectivityConfig.'mongo-get-request-name' as String) replace &quot;Request&quot; with(&quot;&quot;)]">
+			<wsc:message >
+				<wsc:body ><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            ("roc:" ++ vars.connectivityConfig.'mongo-get-request-name' as String): null
+        }
+    }
+}]]]></wsc:body>
+			</wsc:message>
+		</wsc:consume>
+		<ee:transform doc:name="Prepare Data From MONGO For Next Step" doc:id="1e45776c-c647-4305-9363-85dc0574a797">
+			<ee:message>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="data" ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+import * from dw::core::Arrays
+output application/java
+
+
+var responseObj = valuesOf(payload.body as Object)
+var response = flatten(responseObj map ((item) -> valuesOf(item))) filter (($ is Object))
+---
+if(sizeOf(response) > 0)
+flatten(vars.data + (response map ((item) -> item mergeWith {db: "MONGO"})))
+else vars.data]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<validation:validate-size doc:name="Validate If There Is The Data To Process" doc:id="8b6d6daa-3c49-4c38-b8fe-06770934d7bd" config-ref="Validation_Config" value="#[vars.data]" min="#[1]" message='#["No data has been recieved for the " ++ vars.config.entityName as String ++ " entity. Process has been stopped."]'/>
+		<flow-ref doc:name="Define Data for Jobs" doc:id="bbdb974f-b171-4c98-80d7-e0509af30358" name="defineDataForJobsFlow"/>
+	</flow>
+	<flow name="defineDataForJobsFlow" doc:id="2326df10-2762-48f1-a6e8-3dc263bb2731">
+		<ee:transform doc:name="Set Prepared data" doc:id="19edd685-8064-45b2-9739-61bc1efc8cbf" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="processedData" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+				<ee:set-variable variableName="random" ><![CDATA[%dw 2.0
+output application/java
+---
+random()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="0d599a9b-7e2b-41d5-9b58-37fe6443362f" >
+			<ee:transform doc:name="Define Records To Delete" doc:id="f54c557b-b7f5-4938-bdbe-6834fa323ba0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+output application/java
+
+fun getRecordsToDelete(db) = do {
+	var records = vars.data filter($.db == db as String)
+	var shuffledRecords = records orderBy vars.random
+    ---
+    slice(shuffledRecords, 0, (sizeOf(shuffledRecords) * vars.config.deleteCoeff as Number))
+}
+---
+flatten(getRecordsToDelete("MONGO") + getRecordsToDelete("SQL"))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<error-handler >
+				<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="7e7c42ec-ae3f-4ba0-9b55-c901973967f1" type="ANY">
+					<raise-error doc:name="Raise error" doc:id="0dae8783-a048-461c-b829-ebd0a7d4a8f8" type="PROCESS:DATA_DEFINITION" description='#["An error occured while defining records to delete for entity " ++ vars.config.entityName as String ++ ". The process has been stopped."]'/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<foreach doc:name="For Each" doc:id="cb51b612-ea65-46c7-834c-9ddc69c42038" collection="#[payload]">
+			<try doc:name="Try" doc:id="5d7383b3-c496-425e-ba14-bc06b2cea77f">
+					<ee:transform doc:name="Define Records For Deleting" doc:id="f98d0ee1-8085-4509-b0d1-e0d7e0155e1f">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+							<ee:set-variable variableName="processedData"><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+output application/java
+---
+vars.processedData + 
+{
+	id: payload[(vars.config.defineByField)],
+	operation: 'delete',
+	db: payload.db
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="e1ec68af-a8c5-403b-9487-5dc5e8e0b340" message='#["Record to delete for entity " ++ vars.config.entityName as String ++ " prepared."]' />
+			<error-handler>
+						<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="5a34f601-764a-482f-b4c8-467679f23850" type="ANY">
+							<ee:transform doc:name="Set Current Operation" doc:id="008b72aa-4d11-45c5-9eda-7b4021b93da1">
+								<ee:message>
+								</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="currentOperation"><![CDATA[%dw 2.0
+output application/java
+---
+"delete_preparation"
+]]></ee:set-variable>
+						</ee:variables>
+							</ee:transform>
+							<flow-ref doc:name="Create Report For The Error" doc:id="e213a0e3-52fc-4922-86b7-474538538888" name="createReporForErrorJob" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+		</foreach>
+		<try doc:name="Try" doc:id="68961bfa-a9e2-49ea-a554-94e3bb07560b" >
+			<ee:transform doc:name="Define Records To Update" doc:id="29905787-7c7d-4525-9dc3-86f06d631322">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+import * from dw::core::Objects
+import * from dw::core::Strings
+output application/java
+
+fun getRecordsToProcess(db) = do {
+    var recordsToDelete = (vars.processedData filter (($.operation == 'delete') and ($.db == db as String))) map $.id
+    var recordsForUpdating = vars.data filter 
+                            (!(recordsToDelete contains $[(vars.config.defineByField as String)]) 
+                            and 
+                            ($.db == db as String))
+                            
+    var shuffledRecords = recordsForUpdating orderBy vars.random    
+    ---
+    slice(shuffledRecords, 0, (sizeOf(shuffledRecords) * vars.config.updateCoeff))             
+}
+---
+flatten(getRecordsToProcess("SQL") + getRecordsToProcess("MONGO"))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<error-handler >
+				<on-error-propagate enableNotifications="false" logException="false" doc:name="On Error Propagate" doc:id="a26f7b2f-c3da-41ca-adf6-d1c1d6d43d20" type="ANY">
+					<raise-error doc:name="Raise error" doc:id="e5a9fafd-f329-46d6-9193-6e01c2703adc" type="PROCESS:DATA_DEFINITION" description='#["An error occured while defining records to update for entity " ++ vars.config.entityName as String ++ ". The process has been stopped."]'/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<foreach doc:name="For Each" doc:id="c79b6f05-4b0b-4694-8ebd-b47acec8aa0d" >
+			<try doc:name="Try" doc:id="c64d2374-6181-4380-bcf3-c5dfb9b26149">
+					<ee:transform doc:name="Define Records And Values for Updating" doc:id="5041b426-cc0f-4271-a57e-261b3067816a">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+							<ee:set-variable variableName="processedData"><![CDATA[%dw 2.0
+import * from dw::core::Arrays
+import * from dw::core::Objects
+import * from dw::core::Strings
+output application/java
+
+// Functions for changing data
+var stubs = [0, "3.14"]
+var days = [|P3D|, |P6D|, |P9D|]
+var months = [|P3M|, |P6M|, |P9M|]
+
+fun addDays(date) = date + days[randomInt(sizeOf(days))]
+fun addMonths(date) = date + months[randomInt(sizeOf(days))]
+fun subtractDays(date) = date - days[randomInt(sizeOf(days))]
+fun subtractMonths(date) = date - months[randomInt(sizeOf(days))]
+
+fun increase(n) = n + randomInt(n)
+fun decrease(n) = n - randomInt(n)
+fun multiply(n) = n * randomInt(n/2)
+fun divide(n) = n / (randomInt(27) + 1)
+
+fun addToString(str) = str ++ " -VHBC-"
+fun capitalizeString(str) = capitalize(str) ++ " -VHBCp-"
+fun camelizeString(str) = camelize(str) ++ " -VHBCm-"
+
+var numbersOperations = [increase, decrease, multiply, divide]
+var datesOperations = [addDays, addMonths, subtractDays, subtractMonths]
+var stringOperations = [addToString, capitalizeString, camelizeString]
+
+// Functions to define and change a value
+fun getNewValue(val) = (
+    if(val is Object) do{
+        var keys = keysOf(val)
+        var key = keys[randomInt(sizeOf(keys))]
+        ---
+        {(key): getNewValue(val[(key)])}
+    }
+    else if(val is Array) do{
+        var index = randomInt(sizeOf(val))
+        ---
+        {(index): getNewValue(val[index as Number])}
+    }
+    else if(val is Boolean) !(val)
+    else if(val == "true") "false"
+    else if(val == "false") "true"
+    else if(val contains 'http') val ++ "/new_path"
+    else if(matches(val, "^\d{4}-\d{2}-\d{2}")) 
+            datesOperations[randomInt(sizeOf(datesOperations))](val)
+    else if(val is String and matches(val, "^\d*\.\d*")) 
+            numbersOperations[randomInt(sizeOf(numbersOperations))](val as Number)
+    else if(val is String and isNumeric(val))
+            numbersOperations[randomInt(sizeOf(numbersOperations))](val as Number)
+    else if(val is String) stringOperations[randomInt(sizeOf(stringOperations))](val)
+    else if(val is Number) numbersOperations[randomInt(sizeOf(numbersOperations))](val) + 1
+    else if(val is Null) stubs[randomInt(sizeOf(stubs))]
+    else null
+)
+
+fun getValuesToChange(item) = do {
+    var keys = keysOf(item) filter !(vars.config.fieldsToExclude contains $ as String)
+    var randomKey = keys[randomInt(sizeOf(keys))]
+    ---
+    {
+        key: randomKey,
+        value: getNewValue(item[(randomKey)])
+    }
+}
+
+---
+vars.processedData + 
+{
+    id: payload[(vars.config.defineByField)],
+    operation: 'update',
+    db: payload.db,
+    valuesToChange: getValuesToChange(payload)
+}
+
+      ]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="3bbbcf1c-488d-4b54-9ca8-c6ecbec5a428" message='#["Record to update for entity " ++ vars.config.entityName as String ++ " prepared."]' />
+			<error-handler>
+						<on-error-continue enableNotifications="true" logException="false" doc:name="On Error Continue" doc:id="bf013054-2eaf-4c8e-98e2-33d4b51f8bb5" type="ANY">
+							<ee:transform doc:name="Set Current Operation" doc:id="31bc95a9-775e-46a9-b8bb-1e902e49c623">
+								<ee:message>
+								</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="currentOperation"><![CDATA[%dw 2.0
+output application/java
+---
+"update_preparation"]]></ee:set-variable>
+						</ee:variables>
+							</ee:transform>
+							<flow-ref doc:name="Create Report For The Error" doc:id="bfa0c57e-88a0-48c4-a48f-6cb7a75de5dd" name="createReporForErrorJob" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+		</foreach>
+		<ee:transform doc:name="Set Prepared Data Into Payload" doc:id="0b2a82b3-105d-458c-a43c-e629e9bf24d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.processedData]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="common-error-handlerError_Handler"/>
+	</flow>
+</mule>

@@ -1,0 +1,40 @@
+#%RAML 1.0 DataType
+
+displayName: Core
+description: Defines the fields in Core Datatype
+
+type: object
+properties:
+  block: 
+    type: number
+    default: null
+  reuse_count: 
+    type: number
+    default: 0
+  rtls_attempts: 
+    type: number
+    default: 0
+  rtls_landings: 
+    type: number
+    default: 0
+  asds_attempts: 
+    type: number
+    default: 0
+  asds_landings: 
+    type: number
+    default: 0
+  last_update: 
+    type: string
+    default: null
+  launches: 
+    type: string[]
+    items:
+      type: string
+  serial: 
+    type: string
+    default: null
+    required: true
+  status: 
+    type: !include statusDataType.raml
+    required: true
+  id: string

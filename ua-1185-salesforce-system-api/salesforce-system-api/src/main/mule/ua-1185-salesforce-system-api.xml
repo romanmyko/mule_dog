@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+    <http:listener-config name="salesforce-system-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="salesforce-system-api-config" api="salesforce-system-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="salesforce-system-api-main" doc:id="489bf1eb-f2d0-42c1-8be2-62664c9dc066">
+        <http:listener config-ref="salesforce-system-api-httpListenerConfig" path="/*" allowedMethods="GET,POST,PUT">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <azure-key-vault:get-secret doc:name="Get Secret" doc:id="7a85e21d-158d-49e1-9787-9139495ddcf7" config-ref="Azure_Key_Vault_Config_Common_project" name="key-salesforce" target="key" targetValue="#[read(payload.value as String)]" />
+        <apikit:router config-ref="salesforce-system-api-config" />
+		<error-handler ref="ua-1185-spacex-APIKit-Error_Handler" />
+    </flow>
+    <flow name="salesforce-system-api-console">
+        <http:listener config-ref="salesforce-system-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="salesforce-system-api-config" />
+		<error-handler ref="ua-1185-spacex-APIKit-Error_Handler" />
+    </flow>
+    <flow name="put:\contracts:application\json:salesforce-system-api-config">
+        <flow-ref doc:name="Flow Reference to Update Contracts" doc:id="33940a72-2081-45f5-94b5-0e9ef95ad667" name="updateContract" />
+		<error-handler ref="ua-1185-spacex-salesforce-Error_Handler" />
+    </flow>
+    <flow name="post:\cases:application\json:salesforce-system-api-config">
+        <flow-ref doc:name="Flow Reference to Create Cases" doc:id="9d823dc8-c5a9-4b9f-b574-60ce59362f77" name="createCase" />
+		<error-handler ref="ua-1185-spacex-salesforce-Error_Handler" />
+    </flow>
+    <flow name="post:\contracts:application\json:salesforce-system-api-config">
+        <flow-ref doc:name="Flow Reference to Create Contracts" doc:id="3bd85a1d-721f-44d8-a08b-1eebb2113341" name="createContract" />
+		<error-handler ref="ua-1185-spacex-salesforce-Error_Handler" />
+    </flow>
+    <flow name="get:\contracts\(id):salesforce-system-api-config" doc:id="28e85779-c1a8-49de-9448-e2c5b5594000">
+        <flow-ref doc:name="Flow Reference to Get Contract By Id" doc:id="a096155a-6fea-4909-add8-5527d227c942" name="getContractById" />
+		<error-handler ref="ua-1185-spacex-salesforce-Error_Handler" />
+    </flow>
+</mule>

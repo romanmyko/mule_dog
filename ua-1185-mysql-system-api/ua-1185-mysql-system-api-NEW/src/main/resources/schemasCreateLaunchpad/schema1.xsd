@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid Technologies Online Tools 1.0 (https://www.liquid-technologies.com) -->
+<xs:schema xmlns:tns="http://example.com/rocketservice" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://example.com/rocketservice" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="schema0.xsd" />
+  <xs:element name="CreateLaunchpadRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="externalId" />
+        <xs:element ref="name" />
+        <xs:element ref="locality" />
+        <xs:element ref="region" />
+        <xs:element ref="status" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

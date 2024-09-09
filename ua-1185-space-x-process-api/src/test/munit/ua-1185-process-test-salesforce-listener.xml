@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<munit:config name="test-salesforce-listener.xml" />
+	<munit:test name="test-update-externalId-in-2-db" doc:id="82979e7b-3695-4e22-9306-a7260cf04caa" >
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="on-modified-object" />
+		</munit:enable-flow-sources>
+		<munit:behavior >
+			<!-- [STUDIO:"Spy on mapping fields"]<munit-tools:spy doc:name="Spy on mapping fields" doc:id="52ec3ddc-dcbe-4762-a177-502b55537db3" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ccab2ecf-4862-49f5-9a67-5f3c54a63ba9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-equals doc:name="Assert equals input" doc:id="9c7dac5a-a31c-40b8-9105-56869f0239b2" actual="#[payload&#93;" expected='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{"CustomerSignedDate": null, &#10; "ActivatedById": null, &#10; "LastModifiedDate": "2024-07-17T16:48:03.000Z", &#10; "RocketName__c": "test_rocket_name", &#10; "ContractNumber": "00000190", &#10; "AccountId": "001Qy00000OJydlIAD", &#10; "Description": null, &#10; "BillingCity": null, &#10; "CustomerSignedId": null, &#10; "LastReferencedDate": "2024-07-17T16:48:03.000Z", &#10; "BillingLatitude": null,&#10; "ContractTerm": 1,&#10; "type": "Contract", &#10; "CompanySignedId": null, &#10; "StatusCode": "Draft", &#10; "SuccessStatus__c": 1, &#10; "StartDate": "2024-07-17", &#10; "BillingAddress": null, &#10; "OwnerId": "005Qy000005y97BIAQ", &#10; "CreatedById": "005Qy000005y97BIAQ", &#10; "BillingLongitude": null, &#10; "BillingGeocodeAccuracy": null, &#10; "BillingPostalCode": null, &#10; "CustomerSignedTitle": null, &#10; "ActivatedDate": null, &#10; "Status": "Draft", &#10; "DateCreation__c": "2024-07-17", &#10; "IsDeleted": false, &#10; "SpecialTerms": null, &#10; "LastViewedDate": "2024-07-17T16:48:03.000Z", &#10; "LastApprovedDate": null, &#10; "EndDate": "2024-08-16", &#10; "SystemModstamp": "2024-07-17T16:48:03.000Z", &#10; "BillingCountry": null, &#10; "BillingStreet": null, &#10; "CreatedDate": "2024-07-17T09:54:15.000Z", &#10; "LastActivityDate": null, &#10; "Pricebook2Id": null, &#10; "CompanySignedDate": null, &#10; "OwnerExpirationNotice": null, &#10; "ExternalId__c": "test_Bilous", &#10; "Details__c": "test_details", &#10; "Id": "800Qy00000GS9TqIAL", &#10; "LastModifiedById": "005Qy000005y97BIAQ", &#10; "BillingState": null, &#10; "NameSalesforce__c": "test_name"&#10;}&#93;'/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-equals doc:name="Assert equals output" doc:id="142230d4-80d1-4a95-aa69-bfcea7d5f14b" actual="#[vars.LaunchFieldsData&#93;" expected='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;externalId: "test_Bilous",&#10;success: 1,&#10;details: "test_details",&#10;launchName: "test_name",&#10;date: "2024-07-17",&#10;rocketName: "test_rocket_name"&#10;}&#93;'/>
+				</munit-tools:after-call>
+			</munit-tools:spy> [STUDIO] -->
+			<munit-tools:mock-when doc:name="Mock MySQL check externalId" doc:id="7ee197ed-744c-47cc-aed8-a9547336b7ea" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b701b7fa-beb9-4b0c-8e93-9650bf2fd3d0" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/xml&#10;---&#10;{&#10;    "soap:Envelope" @("xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/"): {&#10;        "soap:Body": {&#10;            "soap:GetLaunchByExternalIdResponse" @("xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/"): {&#10;                "id": 607,&#10;                "externalId": "test_Bilous",&#10;                "success": "true",&#10;                "details": "test_details",&#10;                "launchName": "test_name",&#10;                "date": "2024-07-17",&#10;                "rocketName": "test_rocket_name"&#10;                &#10;            }&#10;        }&#10;    }&#10;}]' mediaType="application/xml" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock MySQL update launch" doc:id="fd6a509d-daca-49fc-aecf-e8f41c4be13c" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d8468f09-6375-4e9a-95a4-a9a79d240d0d" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[%dw 2.0&#10;output application/xml&#10;---&#10;{&#10;    "soap:Envelope" @("xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/"): {&#10;        "soap:Body": {&#10;        	"soap:Result" @("xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope"):&#10;        	    "message": "Updated successfully"&#10;        	}&#10;        }&#10;}]' mediaType="application/xml" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Mongo check externalId" doc:id="989f4508-fac2-463c-8a29-3a564b6e261b" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="70de624f-2d0f-43cb-bccb-a18f6da82679" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Mongo update launch" doc:id="a4dbde9d-e02c-4e65-96ab-84b1b8497860" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="d054fdbd-a764-480b-9caf-30a3eaf78666" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="b9a3c000-4859-47d1-961e-04ab364d4571" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{"CustomerSignedDate": null, 
+ "ActivatedById": null, 
+ "LastModifiedDate": "2024-07-17T16:48:03.000Z", 
+ "RocketName__c": "test_rocket_name", 
+ "ContractNumber": "00000190", 
+ "AccountId": "001Qy00000OJydlIAD", 
+ "Description": null, 
+ "BillingCity": null, 
+ "CustomerSignedId": null, 
+ "LastReferencedDate": "2024-07-17T16:48:03.000Z", 
+ "BillingLatitude": null,
+ "ContractTerm": 1,
+ "type": "Contract", 
+ "CompanySignedId": null, 
+ "StatusCode": "Draft", 
+ "SuccessStatus__c": 1, 
+ "StartDate": "2024-07-17", 
+ "BillingAddress": null, 
+ "OwnerId": "005Qy000005y97BIAQ", 
+ "CreatedById": "005Qy000005y97BIAQ", 
+ "BillingLongitude": null, 
+ "BillingGeocodeAccuracy": null, 
+ "BillingPostalCode": null, 
+ "CustomerSignedTitle": null, 
+ "ActivatedDate": null, 
+ "Status": "Draft", 
+ "DateCreation__c": "2024-07-17", 
+ "IsDeleted": false, 
+ "SpecialTerms": null, 
+ "LastViewedDate": "2024-07-17T16:48:03.000Z", 
+ "LastApprovedDate": null, 
+ "EndDate": "2024-08-16", 
+ "SystemModstamp": "2024-07-17T16:48:03.000Z", 
+ "BillingCountry": null, 
+ "BillingStreet": null, 
+ "CreatedDate": "2024-07-17T09:54:15.000Z", 
+ "LastActivityDate": null, 
+ "Pricebook2Id": null, 
+ "CompanySignedDate": null, 
+ "OwnerExpirationNotice": null, 
+ "ExternalId__c": "test_Bilous", 
+ "Details__c": "test_details", 
+ "Id": "800Qy00000GS9TqIAL", 
+ "LastModifiedById": "005Qy000005y97BIAQ", 
+ "BillingState": null, 
+ "NameSalesforce__c": "test_name"
+}&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform> [STUDIO] -->
+			<munit:set-event doc:name="Set On Modified Object Event" doc:id="30717a76-105a-4389-b6b2-08bd2758a91b" >
+				<munit:payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{"CustomerSignedDate": null, &#10; "ActivatedById": null, &#10; "LastModifiedDate": "2024-07-17T16:48:03.000Z", &#10; "RocketName__c": "test_rocket_name", &#10; "ContractNumber": "00000190", &#10; "AccountId": "001Qy00000OJydlIAD", &#10; "Description": null, &#10; "BillingCity": null, &#10; "CustomerSignedId": null, &#10; "LastReferencedDate": "2024-07-17T16:48:03.000Z", &#10; "BillingLatitude": null,&#10; "ContractTerm": 1,&#10; "type": "Contract", &#10; "CompanySignedId": null, &#10; "StatusCode": "Draft", &#10; "SuccessStatus__c": 1, &#10; "StartDate": "2024-07-17", &#10; "BillingAddress": null, &#10; "OwnerId": "005Qy000005y97BIAQ", &#10; "CreatedById": "005Qy000005y97BIAQ", &#10; "BillingLongitude": null, &#10; "BillingGeocodeAccuracy": null, &#10; "BillingPostalCode": null, &#10; "CustomerSignedTitle": null, &#10; "ActivatedDate": null, &#10; "Status": "Draft", &#10; "DateCreation__c": "2024-07-17", &#10; "IsDeleted": false, &#10; "SpecialTerms": null, &#10; "LastViewedDate": "2024-07-17T16:48:03.000Z", &#10; "LastApprovedDate": null, &#10; "EndDate": "2024-08-16", &#10; "SystemModstamp": "2024-07-17T16:48:03.000Z", &#10; "BillingCountry": null, &#10; "BillingStreet": null, &#10; "CreatedDate": "2024-07-17T09:54:15.000Z", &#10; "LastActivityDate": null, &#10; "Pricebook2Id": null, &#10; "CompanySignedDate": null, &#10; "OwnerExpirationNotice": null, &#10; "ExternalId__c": "test_Bilous", &#10; "Details__c": "test_details", &#10; "Id": "800Qy00000GS9TqIAL", &#10; "LastModifiedById": "005Qy000005y97BIAQ", &#10; "BillingState": null, &#10; "NameSalesforce__c": "test_name"&#10;}]' encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference to on-modified-object flow" doc:id="d4a2eacf-1eac-4b20-a49c-58c05c4d2685" name="on-modified-object"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="test-update-externalId-in-Mongo-db" doc:id="3a447451-e7df-41c1-82be-1a468fd46ef8" />
+	<munit:test name="test-update-externalId-in-MySQL-db" doc:id="ddc6df62-f897-49bd-b488-b7c0def8402a" />
+	<munit:test name="test-update-externalId-in-0-db" doc:id="048ac4ce-3255-4785-a459-4f4da1693951" />
+	<munit:test name="test-create-externalId-in-0-db" doc:id="7685e8b2-e2e8-402f-8df6-89d12a044ba0" />
+	<munit:test name="test-create-externalId-in-Mongo-db" doc:id="f37191fa-5974-436a-b2ff-6e1f14a85fed" />
+	<munit:test name="test-create-externalId-in-MySQL-db" doc:id="1a5c5bbb-9196-4b37-a28e-5bcbb52a0dcc" />
+	<munit:test name="test-create-externalId-in-2-db" doc:id="9aaf5192-6791-43a1-afb4-b00d73509544" />
+
+</mule>

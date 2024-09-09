@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="ua-1185-spacex-db-xml-SQL-Error_Handler" doc:id="330a217e-77ca-465b-88c6-06ed8633fe69" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate DB:CONNECTIVITY" doc:id="e496cc3a-f266-4212-b9c1-7c0ae2f5014c" type="DB:CONNECTIVITY" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 503,&#10;	"message": "Service Unavailable",&#10;	"errorType": "DB:CONNECTIVITY",&#10;	"dateTime": now(),&#10;	"description": "Error occurred during the database connection",&#10;	"source": ""&#10;}]' doc:name="Variable DB:CONNECTIVITY" doc:id="129d9d40-0f03-49c3-a0f2-293d1fa2eca5" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="8a607615-66d5-4197-9e83-5ca127fa69f0" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate DB:BAD_SQL_SYNTAX" doc:id="d50c2f33-426b-4d44-b0c2-d49c84935b47" type="DB:BAD_SQL_SYNTAX" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "DB:BAD_SQL_SYNTAX",&#10;	"dateTime": now(),&#10;	"description": "Error occurred due to incorrect SQL syntax in the query",&#10;	"source": ""&#10;}]' doc:name="Variable DB:BAD_SQL_SYNTAX" doc:id="03643ff3-a538-4e4e-951e-e5892677c165" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="8df17eeb-8d0c-4eb2-85db-6b9bb5f6c30f" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate MULE:EXPRESSION" doc:id="9d330122-902c-4e25-ba75-fdc25dce4a8a" type="MULE:EXPRESSION" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": " Mule expression",&#10;	"description": "MULE:EXPRESSION",&#10;	"dateTime": now(),&#10;	"description": "Error was encountered because the input data does not allow the program to perform operations. Please verify the entered data",&#10;	"source": ""&#10;}]' doc:name="Variable  MULE:EXPRESSION" doc:id="c05301fa-a7af-46e5-ae04-6f2b04f52915" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="e2b3fe86-18fd-4ada-a862-eec3aa698100" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue XML-MODULE:SCHEMA_NOT_HONOURED" doc:id="d2c3d4bf-da11-4a30-8590-f509a0456d99" type="XML-MODULE:SCHEMA_NOT_HONOURED" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"description": " XML-MODULE:SCHEMA_NOT_HONOURED",&#10;	"dateTime": now(),&#10;	"description": "Error occurred due to incorrect XML input. Please verify the entered data",&#10;	"source": ""&#10;}]' doc:name="Variable  XML-MODULE:SCHEMA_NOT_HONOURED" doc:id="61c2d408-409c-4a51-b445-27c3c37bf955" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project  xml-Impl" doc:id="d44254dd-146e-4461-90b8-c6dd9554d7e9" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue VALIDATION:BLANK_STRING" doc:id="ef4d53e9-4fe8-43de-94de-24417b2c7502" type="VALIDATION:BLANK_STRING" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "VALIDATION:BLANK_STRING",&#10;	"dateTime": now(),&#10;	"description": "Error  occurred  due to blank external id field. Please verify the entered data",&#10;	"source": ""&#10;}]' doc:name="Variable  VALIDATION:BLANK_STRING" doc:id="ccb9bf66-854d-4483-8c50-58146f13ed81" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="364a028d-c0f3-48f7-8b1f-3b01a3c6ceab" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue DB:QUERY_EXECUTION" doc:id="fac7a244-06f0-4d29-892f-25d57398522b" type="DB:QUERY_EXECUTION" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "DB:QUERY_EXECUTION",&#10;	"dateTime": now(),&#10;	"description": "Error occurred because the provided input data cannot perform the database operation. One possible cause is a non-unique external ID",&#10;	"source": ""&#10;}]' doc:name="Variable  DB:QUERY_EXECUTION" doc:id="aaba091c-d693-4444-a476-d3ae3b0920a1" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="aa84ab05-44cb-48b3-8b4d-e62097c933a7" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-continue>
+	</error-handler>
+</mule>

@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_362e413a_7d3d_468c_96c0_e8d49d926947_Output_Variables_ERROR_MESSAGE = {| "error message": String |}
+

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+    <flow name="createEntityInReport" doc:id="995b8f3f-dca8-44e9-b885-456ee1a9e489" >
+		<logger level="INFO" doc:name="Logger" doc:id="4f68be64-8297-4c4a-81b1-6c6be3612e04" message='#["Preparing report record for " ++ vars.config.entityName as String]'/>
+		<os:store doc:name="Store Entity Into Report" doc:id="610a6cd5-9eab-4e77-8993-aa66d927db50" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store">
+			<os:value ><![CDATA[#[{started_at: now()}]]]></os:value>
+		</os:store>
+	
+</flow>
+	<flow name="createReporForErrorJob" doc:id="362e413a-7d3d-468c-96c0-e8d49d926947" >
+		<logger level="INFO" doc:name="Logger" doc:id="22c84765-367f-4e82-8af8-5e7fee159707" message='#["An error occured while processing " ++ vars.currentOperation as String ++ " job for entity " ++ vars.config.entityName as String ++ ". Report for the error is creating..."]'/>
+		<set-variable value="#[error]" doc:name="Set Error" doc:id="233dc6cd-d2d2-4d76-bb77-9ee388e00bda" variableName="error"/>
+		<os:retrieve doc:name="Retrieve Report" doc:id="f0c61517-aca4-4956-9462-5411f93053c0" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store">
+			<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Store New Error Into Errors For Entity" doc:id="dc516228-fd52-444c-832f-4ea1240bb21e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/java
+
+var errorsObj = (if(payload.errors is Null) [] else payload.errors)
+var jobError = {
+	operation: vars.currentOperation,
+	errorType: vars.error.errorType.identifier,
+	errorDetail: vars.error.description,
+	errorResponse: vars.error.errorMessage.payload.Envelope.Body
+}
+---
+payload mergeWith {errors: errorsObj + jobError}
+    ]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="ERROR_MESSAGE" ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/json
+
+var error = {
+    "logType":"Error: ",
+    "code": vars.error.errorMessage.attributes.statusCode,
+    "message": valuesOf(vars.error.errorMessage.payload.Envelope.Body.Fault)[0],
+    "errorType": vars.error.errorType.identifier,
+    "dateTime": now(),
+    "description": vars.error.description,
+    "source": vars.error.cause
+}
+---
+error mapObject ((value, key) -> 
+	(if(value is Null) {(key): "Not provided."}
+	 else {(key): value}
+	)
+)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<os:store doc:name="Store Updated Report" doc:id="6fe906b1-062f-4868-a1ac-5b6f214b52c7" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store"/>
+		<flow-ref doc:name="Flow Reference" doc:id="a3a897f8-3d84-4c0b-a9ef-569749b73b30" name="ua-1185-spacex-common-project-impl-Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="71c947ed-b620-43ab-9089-b9b41121833f" message='#["The error occured while processing " ++ vars.currentOperation as String ++ " job for entity " ++ vars.config.entityName as String ++ " has been stored into report."]'/>
+	</flow>
+	<flow name="createReportForCustomError" doc:id="e5283c8b-2e56-4479-ac5c-4fa69448770c" >
+		<set-variable value="#[payload]" doc:name="Set Custom Error" doc:id="3681d11b-32df-4025-b0bf-04679afceaf2" variableName="customError"/>
+		<os:retrieve doc:name="Retrieve Report" doc:id="d6330de1-a95f-41ba-8e89-6941edd73f92" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store">
+			<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Store New Error Into Errors For Entity" doc:id="96c4564d-f146-47bb-9df5-8bbf575de092" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/java
+
+var errorsObj = (if(payload.errors is Null) [] else payload.errors)
+---
+payload mergeWith {errors: errorsObj + vars.customError}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:store doc:name="Store Updated Report" doc:id="9b8107fc-74dd-48f1-bc2d-0d612f992c95" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store"/>
+	</flow>
+	<flow name="addToReportForEntity" doc:id="adcfda1b-7ec6-468f-a6c5-21aec56be627" >
+		<set-variable value="#[payload]" doc:name="Set Report" doc:id="866e010f-0fed-4308-a8fa-ce830825a44a" variableName="report"/>
+		<os:retrieve doc:name="Retrieve Report" doc:id="402e7d67-2409-49c1-840e-05bb1aa96f16" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store">
+			<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Add New Data To Report For Entity" doc:id="fd771e93-0a8f-4d3a-90a4-9e7236f97ef5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Objects
+output application/json
+
+var result = vars.report mapObject ((value, key) -> (
+    if(payload[(key)] is Null) {(key): value}
+    else {(key): value + payload[(key)] as Number}
+))
+---
+payload mergeWith result]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:store doc:name="Store Updated Report" doc:id="ee3b6d5f-8b48-4d65-9e4b-a263cc153895" key='#[vars.config.entityName as String ++ "Report"]' objectStore="Object_store"/>
+	</flow>	
+
+</mule>

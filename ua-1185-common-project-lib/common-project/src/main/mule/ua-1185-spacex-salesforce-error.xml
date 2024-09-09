@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="ua-1185-spacex-salesforce-Error_Handler" doc:id="4da76a51-66eb-4a5f-9d7a-5dbe102b6c6a" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate SALESFORCE:INVALID_INPUT" doc:id="cb88e8c7-ee1d-4415-832e-43717c77f743" type="SALESFORCE:INVALID_INPUT">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "SALESFORCE:INVALID_INPUT",&#10;	"dateTime": now(),&#10;	"description": "The input provided to the Salesforce API is invalid or does not meet the required criteria",&#10;	"source": "Salesforce"&#10;}]' doc:name="Variable APIKIT:BAD_REQUEST" doc:id="6636ed24-990a-46c8-8115-2517b8924951" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="64c80458-e63c-40f6-b79d-4a1a18f490d7" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+	</error-handler>
+</mule>

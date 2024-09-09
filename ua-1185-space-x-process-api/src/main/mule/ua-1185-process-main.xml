@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8febe603-01ae-41fc-b36e-c85be80f8388" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="randomizerMainFlow" doc:id="7b85e769-80d5-4a16-9e3a-8988de09048e" >
+		<http:listener doc:name="Listener" doc:id="3f235dd5-5df8-4ae6-9b12-edd6177726b5" path="randomize" config-ref="HTTPS_Listener_config"/>
+		<flow-ref doc:name="Flow Reference" doc:id="0a6ad294-424a-4a50-86c7-d5c5dc184d5d" name="launchProcessingsFlow"/>
+	</flow>
+	<flow name="getReportMainFlow" doc:id="9a874dcd-c5ed-4fcb-b363-56ba644478cf" >
+		<http:listener doc:name="Listener" doc:id="9c134222-ca70-4087-a26d-e589f15299e2" path="getRandomizeReport" config-ref="HTTPS_Listener_config"/>
+		<flow-ref doc:name="Flow Reference" doc:id="b0abd0c0-87d6-4cdf-946e-018fc4098460" name="getReportFlow"/>
+	</flow>
+	<flow name="mainFlow" doc:id="f0bf7a36-d761-450a-b69e-d0385a387aea" >
+		<salesforce:new-object-listener doc:name="On New Object" doc:id="6feb06dc-b4ec-4e8f-a887-e1f888a969d1" config-ref="Salesforce_Config" objectType="Contract">
+			<scheduling-strategy >
+				<fixed-frequency frequency="${FREQUENCY}" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</salesforce:new-object-listener>
+		<flow-ref doc:name="Flow Reference" doc:id="c51ab97c-b83f-4f17-8af6-5d9876093b62" name="on-new-object"/>
+	</flow>
+	<flow name="mainFlow1" doc:id="ab144a9a-b285-440b-9ad6-a75a81d86330" >
+		<salesforce:modified-object-listener doc:name="On Modified Object" doc:id="f9ba1bfa-bd17-45cb-abdd-83a2bdcf66b0" config-ref="Salesforce_Config" objectType="Contract">
+			<scheduling-strategy >
+				<fixed-frequency frequency="${FREQUENCY}" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</salesforce:modified-object-listener>
+		<flow-ref doc:name="Flow Reference" doc:id="e5e239ab-b106-4041-8650-25a0caa3c237" name="on-modified-object"/>
+	</flow>
+	<flow name="common-LaunchesIterator" doc:id="b7504207-c441-4a27-a2e8-beed79f12db5" >
+		<http:listener doc:name="Listener" doc:id="f9b39129-db16-450e-bdd7-7e0a1fe48db5" config-ref="HTTP_Listener_config" path="syncLaunches" />
+		<flow-ref doc:name="Flow Reference" doc:id="49235f92-8912-4a7f-9692-cee59a7f9145" name="launches-publish-to-iterator" />
+	</flow>
+		<flow name="sync-rocket-payload-launchpad-mainFlow" doc:id="7f406899-14e0-4fd6-809e-56d95d51dcfa">
+		<http:listener doc:name="Listener" doc:id="9d643493-6689-488d-85f9-727b08cf2936" config-ref="HTTPS_Listener_config" path="sync" />
+		<logger level="INFO" doc:name="Start synchronization process " doc:id="88e97691-93f5-4402-b664-c657083790a7" message="SUCCESS: Synchronization process was run." />
+		<flow-ref doc:name="Reference to startProcessFlow" doc:id="b5dab712-ba15-4a5a-8c6a-93e15c9e2a57" name="startProcessFlow" />
+	</flow>
+	<flow name="sync-rocket-payload-launchpad-reportFlow" doc:id="82035845-bbb6-4836-acf4-81bb626c6067" >
+		<http:listener doc:name="Listener" doc:id="55f2cf71-99b4-4cb0-9975-511cbc57a866" config-ref="HTTPS_Listener_config" path="getSyncReport"/>
+		<logger level="INFO" doc:name="Start report generation process " doc:id="2e420a96-193e-42fb-b7aa-b52209aaa497" message="SUCCESS: The process of generating a report has started." />
+		<flow-ref doc:name="Reference to startReportFlow" doc:id="cf17a25e-b658-4f8e-b60f-0f702b3474fd" name="startReportFlow"/>
+	</flow>
+</mule>

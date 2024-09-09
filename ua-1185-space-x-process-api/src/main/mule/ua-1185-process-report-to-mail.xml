@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+		<sub-flow name="startReportFlow" doc:id="d1476b83-cf2b-4081-b19a-739e8c738376" >
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="c7688149-06d0-4b63-b0ba-52a8fd0846a1" objectStore="Object_store_sync"/>
+		<ee:transform doc:name="Transform to json" doc:id="88b5ac39-9277-497d-99a3-c79115e5f809" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload 
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="0ed6dd51-ae17-4694-8871-6363dcc8778c" >
+			<when expression='#[payload == [  "Launchpads_result_mongo_report",&#10;  "Launchpads_result_mysql_report",&#10;  "Payloads_result_mongo_report",&#10;  "Payloads_result_mysql_report",&#10;  "Rockets_result_mongo_report",&#10;  "Rockets_result_mysql_report",&#10;  "result_mode_report"&#10;]]' >
+				<flow-ref doc:name="Reference to create report" doc:id="1c762a6e-3f5f-4456-bd35-09a2bffec6ab" name="createReportFlow" />
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Wait Message" doc:id="c669d6d8-5a23-4687-a61a-2e41ab91304a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+"You need to wait for the report to be generated."]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Not generated report logger" doc:id="9e942071-a0bc-4867-ab29-e792dfac38e3" message="SUCCESS: The report was not generated because the generation process is not yet completed." />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="createReportFlow" doc:id="88961c63-b4d6-4cea-b584-33da1764115a" >
+		<os:retrieve-all doc:name="Retrieve all data from os" doc:id="1345de30-cb63-40fd-a736-34e77cbcc442" objectStore="Object_store_sync"/>
+		<ee:transform doc:name="Transform to json" doc:id="57aeb695-e4aa-4e82-920a-ee213b5bf255" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload 
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Create report" doc:id="55fca689-7d33-4376-9d8c-6d772edb4a12" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Dates
+output text/plain
+---
+"Mode: " ++ payload.result_mode_report as String ++ "\n" ++
+"DateTime: " ++ (now() as String { format: "dd-MM-yyyy HH:mm:ss\n" }) ++
+"Requestor: HTTPS\n\n" ++
+"Content\n" ++  "------------------------------------------------------------------------\n" ++
+"\nSource: MySQL\n" ++ 
+payload."Launchpads_result_mysql_report" as String ++ "\n" ++
+payload."Rockets_result_mysql_report" as String ++ "\n" ++
+payload."Payloads_result_mysql_report" as String ++
+"\n\nSource: MongoDB\n" ++ 
+payload."Launchpads_result_mongo_report" as String ++ "\n" ++
+payload."Rockets_result_mongo_report" as String ++ "\n" ++
+payload."Payloads_result_mongo_report" as String ++
+"\n------------------------------------------------------------------------"]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="report" ><![CDATA[%dw 2.0
+import * from dw::core::Dates
+output text/plain
+---
+"Mode: " ++ payload.result_mode_report as String ++ "\n" ++
+"DateTime: " ++ (now() as String { format: "dd-MM-yyyy HH:mm:ss\n" }) ++
+"Requestor: HTTPS\n\n" ++
+"Content\n" ++  "------------------------------------------------------------------------\n" ++
+"\nSource: MySQL\n" ++ 
+payload."Launchpads_result_mysql_report" as String ++ "\n" ++
+payload."Rockets_result_mysql_report" as String ++ "\n" ++
+payload."Payloads_result_mysql_report" as String ++
+"\n\nSource: MongoDB\n" ++ 
+payload."Launchpads_result_mongo_report" as String ++ "\n" ++
+payload."Rockets_result_mongo_report" as String ++ "\n" ++
+payload."Payloads_result_mongo_report" as String ++
+"\n------------------------------------------------------------------------"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Reference to mail report" doc:id="388d700d-e2ac-4caa-8ac5-90fa6a336336" name="mailReportFlow" />
+	</sub-flow>
+	<sub-flow name="mailReportFlow" doc:id="ab8bdd53-d9de-448d-bae5-70b52e88b372" >
+		<async doc:name="Async" doc:id="224fc3da-8bcc-425c-86fa-7d4d43935a58">
+			<try doc:name="Try" doc:id="6a79103d-4d1d-4f9b-9068-d88069ca28ae">
+					<azure-key-vault:get-secret doc:name="Get Secret" doc:id="36c98a85-a03c-4e41-98cd-94a731d55a04" config-ref="Azure_Key_Vault_Config_Common_project" name="key-repport"/>
+				<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;read(payload.value as String)]" doc:name="Secrets" doc:id="a97b20dd-5409-4a4e-822e-5d9a7e6f1c13" variableName="secrets" />
+				<email:send doc:id="236fe9d9-b511-4095-9b05-e2622e26fa4b" config-ref="Email_SMTP_Common_project" fromAddress="#[vars.secrets.fromaddres]" subject="Report from SoftServe System Integration (LaunchPads, Rockets and Payloads)" doc:name="Send report email to report mail box">
+			<email:to-addresses>
+						<email:to-address value="#[vars.secrets.toaddres]" />
+						</email:to-addresses>
+						<email:body contentType="text/plain">
+						<email:content ><![CDATA["A report with data on the creation and updating of information is in the attached file."]]></email:content>
+			</email:body>
+					<email:attachments ><![CDATA[#[%dw 2.0
+import * from dw::core::Dates
+output application/json
+var file = (now() as String { format: "dd-MM-yyyy" }) ++ "-https-sync-report.txt"
+---
+{(file) : vars.report}]]]></email:attachments>
+		</email:send>
+					<logger level="INFO" doc:name="Logger mail connector" doc:id="63f5f25f-a983-4edd-b78b-f25f06fb52e5" message="SUCCESS: The report was sent by email." />
+				<error-handler ref="ua-1185-spacex-common-project-mail-Error_Handler" />
+				</try>
+		</async>
+	</sub-flow>
+	</mule>

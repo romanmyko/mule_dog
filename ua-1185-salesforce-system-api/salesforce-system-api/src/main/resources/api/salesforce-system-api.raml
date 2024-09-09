@@ -1,0 +1,69 @@
+#%RAML 1.0
+title: salesforce-system-api
+baseUri: http://localhost:8081/
+version: v1
+description: Implementation of REST Salesforce-System-API
+
+types:
+  CaseType: !include datatypes/CaseType.raml
+  ContractType: !include datatypes/ContractType.raml
+  ContractUpdateType: !include datatypes/ContractUpdateType.raml
+  
+/cases:
+  post:
+    description: Create a new case in Salesforce
+    body:
+      application/json:
+        type: CaseType[]
+        example: !include examples/caseExample.json
+    responses:
+      201:
+        body:
+          application/json:
+            type: object
+            properties:
+              id: string
+              success: boolean
+/contracts:
+  post:
+    description: Create a new contract in Salesforce
+    body:
+      application/json:
+        type: ContractType[]
+        example: !include examples/contractCreateExample.json
+    responses:
+      201:
+        body:
+          application/json:
+            type: object
+            properties:
+              id: string
+              success: boolean
+  put:
+    description: Update an existing contract in Salesforce
+    body:
+      application/json:
+        type: ContractUpdateType[]
+        example: !include examples/contractUpdateExample.json   
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            properties:
+              id: string
+              success: boolean  
+  /{id}:
+    get:
+      description: Retrieve a contract by ID
+      responses:
+        200:
+          body:
+            application/json:
+              type: ContractType
+        404:
+          body:
+            application/json:
+              type: object
+              properties:
+                error: string

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<flow name="on-new-object" doc:id="4bbec579-4f9a-4cfc-9df4-3fe62dc61047" >
+		<ee:transform doc:name="Mapping fields" doc:id="2f7097ec-ff03-4fea-96ff-a8ef891b7049" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="LaunchFieldsData" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+externalId: payload.ExternalId__c,
+success: payload.SuccessStatus__c,
+details: payload.Details__c,
+launchName: payload.NameSalesforce__c,
+date: payload.DateCreation__c,
+rocketName: payload.RocketName__c
+}]]></ee:set-variable>
+				<ee:set-variable variableName="externalId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.ExternalId__c]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Prepare input xmls" doc:id="59e79ada-ccae-43a4-bbed-f4760f4c6a93" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="XMLForMySQL" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:CreateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+				<ee:set-variable variableName="XMLForMongo" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc":"http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:CreateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="1b03cdeb-9068-40a6-9b3b-26d0b3aeba55" >
+			<http:request method="POST" doc:name="MySQL check externalId" doc:id="3a45bba8-ac32-4592-aa96-187b09c92e34" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+			<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:GetLaunchByExternalIdRequest": 
+               "externalId": vars.externalId
+            
+        }
+    }
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+			<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+		</try>
+		<choice doc:name="Choice" doc:id="89bb3c61-f962-4ba6-9d18-60357e802f3a" >
+			<when expression='#[ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.soap#Envelope.soap#Body.soap#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<try doc:name="Try" doc:id="4fe1eeca-abf7-47ef-aee5-6846167effc7" >
+					<http:request method="POST" doc:name="MySQL create launch" doc:id="0ed6d08f-85db-4db9-8604-9d413e949ad3" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+			<http:body><![CDATA[#[vars.XMLForMySQL]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="a220c97e-43ad-4305-9937-c1b21f784216" message="CREATE"/>
+			</otherwise>
+		</choice>
+		<try doc:name="Try" doc:id="e9135810-1240-419b-b487-4f07e13df36c" >
+			<http:request method="POST" doc:name="Mongo check externalId" doc:id="e558dc47-b0b6-47f6-b483-a330df7b8774" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+			<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc":"http://www.example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:GetLaunchByExternalIdRequest": 
+            	"externalId": vars.externalId        
+        }
+    }
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+			<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+		</try>
+		<choice doc:name="Choice" doc:id="d97f700b-d10a-4cce-ae88-c532cfdf617d" >
+			<when expression='#[ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;---&#10;payload.soap#Envelope.soap#Body.roc#GetByExternalIdResponse == "No result for provided id"]'>
+				<try doc:name="Try" doc:id="09853166-313b-4154-a791-2d7a19b217da" >
+					<http:request method="POST" doc:name="Mongo create launch" doc:id="e77f3a23-9a8f-44ce-a518-bb97fc0f33eb" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+			<http:body><![CDATA[#[vars.XMLForMongo]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</when>
+		</choice>
+		
+	</flow>
+	<flow name="on-modified-object" doc:id="a87dbe84-c134-4735-8543-2813b1fac5d6" >
+		<logger level="INFO" doc:name="Logger" doc:id="696b32b9-9e43-4efc-a56f-c9808e17e1e3" message="#[payload]"/>
+		<ee:transform doc:name="Mapping fields" doc:id="ccab2ecf-4862-49f5-9a67-5f3c54a63ba9" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="LaunchFieldsData" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+externalId: payload.ExternalId__c,
+success: payload.SuccessStatus__c,
+details: payload.Details__c,
+launchName: payload.NameSalesforce__c,
+date: payload.DateCreation__c,
+rocketName: payload.RocketName__c
+}]]></ee:set-variable>
+				<ee:set-variable variableName="externalId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.ExternalId__c]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Prepare input xmls" doc:id="3e11f675-dd87-458a-a22e-af706e62606a" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="XMLForMySQL" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:UpdateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+				<ee:set-variable variableName="XMLForMongo" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc":"http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:UpdateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+				<ee:set-variable variableName="XMLForMongoCreate" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc":"http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:CreateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+				<ee:set-variable variableName="XMLForMySQLCreate" ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:CreateLaunchRequest": vars.LaunchFieldsData
+            
+        }
+    }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="e10b9064-edbc-4107-8b63-352b6c3ebfb8" >
+			<http:request method="POST" doc:name="MySQL check externalId" doc:id="b701b7fa-beb9-4b0c-8e93-9650bf2fd3d0" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+			<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc": "http://example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:GetLaunchByExternalIdRequest": 
+               "externalId": vars.externalId
+            
+        }
+    }
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+			<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+		</try>
+		<choice doc:name="Choice" doc:id="953c3f13-7514-4b20-a2cc-efec66b1d3d0" >
+			<when expression='#[ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.soap#Envelope.soap#Body.soap#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<try doc:name="Try" doc:id="7656444f-3c74-40fb-a6ac-9d1b5fbbfa25" >
+					<http:request method="POST" doc:name="MySQL create launch" doc:id="834a007f-57ac-4e94-beb6-11b671435e74" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+					<http:body><![CDATA[#[vars.XMLForMySQLCreate]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</when>
+			<otherwise>
+				<try doc:name="Try" doc:id="958e66cc-8f04-4ae9-a72a-c15063d635df" >
+					<http:request method="POST" doc:name="MySQL update launch" doc:id="d8468f09-6375-4e9a-95a4-a9a79d240d0d" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+			<http:body><![CDATA[#[vars.XMLForMySQL]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</otherwise>
+		</choice>
+		<try doc:name="Try" doc:id="3fc9d0fe-ffef-4ada-a752-ce1dfef4b70b" >
+			<http:request method="POST" doc:name="Mongo check externalId" doc:id="70de624f-2d0f-43cb-bccb-a18f6da82679" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+			<http:body><![CDATA[#[%dw 2.0
+output application/xml
+---
+{
+    "soapenv:Envelope" @("xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/", "xmlns:roc":"http://www.example.com/rocketservice"): {
+        "soapenv:Header": null,
+        "soapenv:Body": {
+            "roc:GetLaunchByExternalIdRequest": 
+            	"externalId": vars.externalId        
+        }
+    }
+}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+			<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+		</try>
+		<choice doc:name="Choice" doc:id="6b7299bc-9c10-411d-826c-a606c8a16018" >
+			<when expression='#[ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;---&#10;payload.soap#Envelope.soap#Body.roc#GetByExternalIdResponse != "No result for provided id"]'>
+				<try doc:name="Try" doc:id="2a9d8415-e5fb-4758-919b-01374b78dbfe" >
+					<http:request method="POST" doc:name="Mongo update launch" doc:id="d054fdbd-a764-480b-9caf-30a3eaf78666" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+			<http:body><![CDATA[#[vars.XMLForMongo]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+		</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</when>
+			<otherwise >
+				<try doc:name="Try" doc:id="a05e4747-71cb-40ba-85a5-c83fccd3a487" >
+					<http:request method="POST" doc:name="Mongo create launch" doc:id="45aee9e3-b642-4a6d-8500-9ba517a51047" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+					<http:body><![CDATA[#[vars.XMLForMongoCreate]]]></http:body>
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/xml"
+}]]]></http:headers>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-salesforce-listener-error" />
+				</try>
+			</otherwise>
+		</choice>
+		
+	</flow>
+</mule>

@@ -1,0 +1,44 @@
+#%RAML 1.0 DataType
+
+displayName: Launchpad 
+description: Defines the fields in Launchpad Datatype
+
+type: object
+properties:
+  name: 
+    type: string
+    default: null
+  full_name: 
+    type: string
+    default: null
+  locality: 
+    type: string
+    default: null
+  region: 
+    type: string
+    default: null
+  timezone: 
+    type: string
+    default: null
+  latitude: 
+    type: number
+    default: null
+  longitude: 
+    type: number
+    default: null
+  launch_attempts: 
+    type: number
+    default: 0
+  launch_successes: 
+    type: number
+    default: 0
+  rockets: 
+    type: string[]
+    items:
+      type: string
+  launches: 
+    type: string[]
+    items:
+      type: string
+  status: !include statusDataType.raml
+  id: string

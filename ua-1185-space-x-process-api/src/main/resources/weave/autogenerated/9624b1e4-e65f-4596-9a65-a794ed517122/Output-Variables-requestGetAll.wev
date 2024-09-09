@@ -1,0 +1,11 @@
+%dw 2.0
+// namespaces
+ns ns0 http://schemas.xmlsoap.org/soap/envelope/
+
+type auto_9624b1e4_e65f_4596_9a65_a794ed517122_Output_Variables_requestGetAll = {|
+  ns0#Envelope: {|
+    ns0#Header: Null, 
+    ns0#Body: Any
+  |}
+|}
+

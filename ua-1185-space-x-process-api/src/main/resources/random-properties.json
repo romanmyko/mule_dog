@@ -1,0 +1,69 @@
+{"common-config": {
+					"delete-coeff": 0.2,
+					"update-coeff": 0.3,
+					"define-by-field": "externalId",
+					"fields-to-skip": ["id", "externalId", "_id", "launchpad_id", "db"]
+					},
+ "entities": [
+ 	{
+ 	"entity-name": "Rocket",
+ 	"connectivity-config": {
+ 		"mongo-get-request-name": "GetAllRocketsRequest",
+ 		"mongo-delete-request-name": "DeleteRocketByExternalIdRequest",
+ 		"mongo-update-request-name": "UpdateRocketRequest",
+ 		"sql-get-request-name": "GetAllRocketsRequest",
+ 		"sql-delete-request-name":"DeleteRocketByExternalIdRequest",
+ 		"sql-update-request-name":"UpdateRocketRequest"
+ 		},
+ 	"delete-coeff": null,
+ 	"update-coeff": null,
+	"define-by-field": null,
+	"fields-to-skip": null
+	},
+	 	{
+ 	"entity-name": "Payload",
+ 	"connectivity-config":{
+ 		"mongo-get-request-name": "GetAllPayloadsRequest",
+ 		"mongo-delete-request-name": "DeletePayloadByExternalIdRequest",
+ 		"mongo-update-request-name": "UpdatePayloadRequest",
+ 		"sql-get-request-name": "GetAllPayloadsRequest",
+ 		"sql-delete-request-name":"DeletePayloadByExternalIdRequest",
+ 		"sql-update-request-name":"UpdatePayloadRequest"
+ 		},
+ 	"delete-coeff": null,
+ 	"update-coeff": null,
+	"define-by-field": null,
+	"fields-to-skip": null
+	},
+	 	{
+ 	"entity-name": "Launch",
+ 	"connectivity-config":{
+ 		"mongo-get-request-name": "GetAllLaunchesRequest",
+ 		"mongo-delete-request-name": "DeleteLaunchByExternalIdRequest",
+ 		"mongo-update-request-name": "UpdateLaunchRequest",
+ 		"sql-get-request-name": "GetAllLaunchesRequest",
+ 		"sql-delete-request-name":"DeleteLaunchByExternalIdRequest",
+ 		"sql-update-request-name":"UpdateLaunchRequest"
+ 		},
+ 	"delete-coeff": null,
+ 	"update-coeff": null,
+	"define-by-field": null,
+	"fields-to-skip": null
+	},
+	 	{
+ 	"entity-name": "Launchpad",
+ 	"connectivity-config":{
+ 		"mongo-get-request-name": "GetAllLaunchpadsRequest",
+ 		"mongo-delete-request-name": "DeleteLaunchpadByExternalIdRequest",
+ 		"mongo-update-request-name": "UpdateLaunchpadRequest",
+ 		"sql-get-request-name": "GetAllLaunchpadsRequest",
+ 		"sql-delete-request-name":"DeleteLaunchpadByExternalIdRequest",
+ 		"sql-update-request-name":"UpdateLaunchpadRequest"
+ 		},
+ 	"delete-coeff": null,
+ 	"update-coeff": null,
+	"define-by-field": null,
+	"fields-to-skip": null
+	}
+  ]
+ }

@@ -1,0 +1,48 @@
+%dw 2.0
+
+type auto_a87dbe84_c134_4735_8543_2813b1fac5d6_Output_Variables_XMLForMongoCreate = {|
+  "soapenv:Envelope" @("xmlns:soapenv": String {"MetadataFormat": "xml"}, "xmlns:roc": String {"MetadataFormat": "xml"}): {|
+    "soapenv:Header": Null, 
+    "soapenv:Body": {|
+      "roc:CreateLaunchRequest": {|
+        externalId: java_lang_Object | Null, 
+        success: java_lang_Object_9 | Null, 
+        details: java_lang_Object_12 | Null, 
+        launchName: java_lang_Object_15 | Null, 
+        date: java_lang_Object_18 | Null, 
+        rocketName: java_lang_Object_21 | Null
+      |}
+    |}
+  |}
+|}
+type java_lang_Object_18 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_12 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_21 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_9 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+type java_lang_Object_15 = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+

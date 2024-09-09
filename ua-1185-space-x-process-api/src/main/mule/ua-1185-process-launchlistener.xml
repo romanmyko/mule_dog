@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="9f39f215-386a-48b8-be07-d95d74ac9c89" >
+		<vm:queues >
+			<vm:queue queueName="TestQ" />
+		</vm:queues>
+	</vm:config>
+	<flow name="launches-publish-to-iterator" doc:id="d9c94e11-61d6-44c1-8733-594b114ee94c" >
+		<set-variable value='#[((attributes.queryParams.mode as String) replace /"/ with "" )]' doc:name="Set Working Mode" doc:id="0cbc76a8-2484-48b8-a2e6-e226f3af663d" variableName="mode"/>
+		<os:store doc:name="Store" doc:id="2d0c2f4d-edec-4e86-b8db-52d5dc710712" key='mode' objectStore="Object_storeForReport" >
+			<os:value ><![CDATA[#[vars.mode]]]></os:value>
+		</os:store>
+		<vm:publish queueName="TestQ" doc:name="Publish to Launches-Iterator" doc:id="b357e3c6-7bdb-42dd-b21f-367e4ee92cd1" config-ref="VM_Config" timeout="25" />
+		<error-handler ref="ua-1185-spacex-process-api-JMS-Error_Handler" />
+	</flow>
+	<sub-flow name="ua-1185-spacex-sent-project-impl-mail-Sub_Flow" doc:id="a2ecfff6-7db7-4539-a307-47534b238e9d" >
+		<async doc:name="Async" doc:id="ba4130ac-38d1-4161-a30c-0f263fd6d421" >
+			<try doc:name="Try" doc:id="d2d1c363-ee3e-4577-a14a-89a7a4cd0dda" >
+				<os:retrieve doc:name="Retrieve" doc:id="e050217b-e1b3-4381-b262-12b20aa86ce2" key='Report' objectStore="Object_storeForReport" >
+					<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+				</os:retrieve>
+				<set-variable value="#[payload]" doc:name="Set ReportWithAllData" doc:id="7fa2d7a9-d6dc-49a9-9c8f-488f149cea5d" variableName="ReportWithAllData"/>
+				<os:retrieve doc:name="Retrieve Working Mode" doc:id="ac01dca2-6e9d-4afa-ad39-fd41cb56b2a8" key='mode' objectStore="Object_storeForReport" >
+					<os:default-value ><![CDATA[#[""]]]></os:default-value>
+				</os:retrieve>
+				<set-variable value='#[payload]' doc:name="Set Working Mode" doc:id="e2c66243-c9b8-439a-bec5-64057b855a5b" variableName="mode" />
+				<azure-key-vault:get-secret doc:name="Get Secret " doc:id="1dfd89d1-f481-4442-a947-fb5980fc4d4f" config-ref="Azure_Key_Vault_Config_Common_project" name="key-repport-2" target="secrets" targetValue="#[read(payload.value as String)]"/>
+				<logger level="INFO" doc:name="Logger" doc:id="30cabc8e-7097-4bf1-b5ac-f87cd9d95119" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"Mode": vars.mode,&#10;"Content": vars.ReportWithAllData&#10;}]'/>
+				<email:send doc:name="Send error email to report mail box CP" doc:id="c7713afd-7257-4705-aef9-981dd0e57dc1" config-ref="Email_SMTP_Common_project" fromAddress='#[vars.secrets.fromaddres]' subject="Records Report" >
+					<email:to-addresses >
+						<email:to-address value='#[vars.secrets.toaddres]' />
+					</email:to-addresses>
+					<email:bcc-addresses />
+					<email:body contentType="text/plain" >
+						<email:content ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	"Mode": vars.mode,
+"Content": vars.ReportWithAllData
+}]]]></email:content>
+					</email:body>
+				</email:send>
+				<logger level="INFO" doc:name="Logger  mail sent successfully" doc:id="6c8cf4b7-ae3f-4659-937e-c33df91dfcb5" message="SUCCESS: Sended error mail mesages. Launch iterator" />
+				<error-handler ref="ua-1185-spacex-common-project-mail-Error_Handler" />
+			</try>
+		</async>
+	</sub-flow>
+	<flow name="Launches-Iterator" doc:id="4869c0cf-ac36-4755-bfb7-d2c4923be6ad" >
+		<vm:listener doc:name="Listener" doc:id="c6eb1adc-a775-45c6-9798-78afe86dcef6" config-ref="VM_Config" queueName="TestQ"/>
+		<flow-ref doc:name="Flow Reference" doc:id="e898e3c1-6aa3-4ff0-ae3d-b3b1b9062c42" name="launches-spacexData"/>
+		<set-payload value="#[vars.spacexData.records]" doc:name="Set Payload" doc:id="e5d9a0c7-cdef-4cb3-b9da-bbc928af97cc" />
+		<batch:job jobName="launches-listenerlaunches" doc:id="6b38c890-578e-486b-a614-b721516436cb" blockSize="10" maxFailedRecords="10">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="e8704c02-8a8d-4390-806d-a6fbf497f0e1" acceptPolicy="ALL">
+					<set-variable value="#[payload]" doc:name="Set current Record" doc:id="9eb912a1-9d8c-42dc-b306-0f757028a771" variableName="currentRecord"/>
+					<set-variable doc:name="Set requestId" doc:id="af9661e2-7ed3-4f69-a3e8-baa2278007f7" variableName="requestId" value='#[vars.currentRecord.id]' />
+					<try doc:name="Try" doc:id="3ddc4d1e-8be3-421f-8ff1-2c05f83dde62" >
+						<http:request method="GET" doc:name="Request to get Rocket Name" doc:id="99516cf6-f4cd-4939-926f-9802eb1edf4b" config-ref="HTTP_Request_configuration_SpaceX" path="#['/api/rockets/' ++ vars.currentRecord.rocket]"/>
+						<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-P-Error_Handler" />
+					</try>
+					<set-variable value='#[payload.name]' doc:name="Set rocketName" doc:id="502849b3-c35a-4542-8b37-9551d14a08de" variableName="rocketName" />
+					<flow-ref doc:name="Flow Reference" doc:id="a6d74c7d-084e-4150-8deb-656994982934" name="launches-getDbData" />
+					<ee:transform doc:name="Filter spaceXrecords and set data for report" doc:id="f65588cf-26ea-4ce5-b0b4-c19757583a90">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+
+var launche = vars.currentRecord
+var mongoData = vars.mongoData.result
+var MySQLData = vars.MySQLData.result
+var SalesforceData = vars.SalesforceData.result
+var SalesforceError = vars.SalesforceError
+var MongoError = vars.MongoError
+var MySQLError = vars.MySQLError
+var noResultCheck = "No result for provided id"
+var checkNoResult = (data) -> (data) == noResultCheck
+
+// Function to check if an update is required
+var updateRequired = (sourceData, targetData) -> 
+    targetData != noResultCheck and (
+        ((sourceData.name default "") as String != (targetData.launchName default "") as String) or
+        ((substring((sourceData.date_utc as String), 0, 10) default "") as String != (substring((targetData.date as String), 0, 10) as String)) or
+        ((sourceData.details default "") as String != (targetData.details default "") as String) or
+        ((sourceData.success default "") as String != (targetData.success default "") as String) or
+        ((vars.rocketName default "") as String != (targetData.rocketName default "") as String)
+    )
+
+// Function to create a record with updated fields
+var createRecord = (sourceData, targetData, idField) -> 
+    {
+        updateRequired: updateRequired(sourceData, targetData),
+        id: targetData[idField],
+        name: if ((sourceData.name default "") as String != (targetData.launchName default "") as String) 
+                sourceData.name else null,
+        date_utc: if ((sourceData.date_utc default "") as String != (targetData.date default "") as String) 
+                    sourceData.date_utc else null,
+        details: if ((sourceData.details default "") as String != (targetData.details default "") as String) 
+                    sourceData.details else null,
+        success: if ((sourceData.success default "") as String != (targetData.success default "") as String) 
+                    sourceData.success else null,
+        rocket: if ((vars.rocketName default "") as String != (targetData.rocketName default "") as String) 
+                    vars.rocketName else null
+    } filterObject ((value, key) -> value != null)
+
+// Function to create a report of updated fields
+var createReport = (sourceData, targetData, createNew) ->
+    if (createNew) {
+       id:    (sourceData.id as String) ++
+            ", name: " ++ sourceData.name ++
+            ", date_utc: " ++ sourceData.date_utc ++
+            ", details: " ++ sourceData.details ++
+            ", success: " ++ (sourceData.success as String) ++
+            ", rocket: " ++ (vars.rocketName default "" )++
+      //      ", docType: Launch" ++
+            ", action: Created"
+    } else if (updateRequired(sourceData, targetData)) {
+        id: sourceData.id,
+    //    docType: "Launch",
+        action: "Updated",
+        updatedFields: {
+            name: if ((sourceData.name default "") as String != (targetData.launchName default "") as String) 
+                     (targetData.launchName default "") ++ " -> " ++ (sourceData.name default "") else null,
+            date_utc: if ((sourceData.date_utc default "") as String != (targetData.date default "") as String) 
+                     (targetData.date default "") ++ " -> " ++ (sourceData.date_utc default "") else null,
+            details: if ((sourceData.details default "") as String != (targetData.details default "") as String) 
+                     (targetData.details default "") ++ " -> " ++ (sourceData.details default "") else null,
+            success: if ((sourceData.success default "") as String != (targetData.success default "") as String) 
+                     (targetData.success default "") ++ " -> " ++ (sourceData.success default "") else null,
+            rocket: if ((vars.rocketName default "") as String != (targetData.rocketName default "") as String) 
+                     (targetData.rocketName default "") ++ " -> " ++ (vars.rocketName default "") else null
+        } filterObject ((value, key) -> value != null)
+    } else null
+
+// Function to generate update data
+var generateUpdateData = (record) -> 
+    record filterObject ((value, key) -> key != "updateRequired" and key != "id")
+
+// Determine operation status for each record
+var mongoOperationStatus = if (MongoError == "Error") "No action needed" else if (checkNoResult(mongoData)) "Create" else if (updateRequired(launche, mongoData)) "Update" else "No action needed"
+var MySQLOperationStatus = if (MySQLError == "Error") "No action needed" else if (checkNoResult(MySQLData)) "Create" else if (updateRequired(launche, MySQLData)) "Update" else "No action needed"
+var SalesforceOperationStatus = if (SalesforceError == "Error") "No action needed" else if (checkNoResult(SalesforceData)) "Create" else if (updateRequired(launche, SalesforceData)) "Update" else "No action needed"
+
+---
+{
+    operationStatus: {
+        mongoDB: mongoOperationStatus,
+        MySQL: MySQLOperationStatus,
+        Salesforce: SalesforceOperationStatus
+    },
+    spacexRecordMongo: if (mongoOperationStatus == "Update") {
+         Data: generateUpdateData(createRecord(launche, mongoData, "_id")),
+        report: createReport(launche, mongoData, false)
+    } else if (mongoOperationStatus == "Create") {
+    	  Data: null,
+        report: createReport(launche, mongoData, true)
+    } else null,
+    
+    spacexRecordMySQL: if (MySQLOperationStatus == "Update") {
+           Data: generateUpdateData(createRecord(launche, MySQLData, "id")),
+        report: createReport(launche, MySQLData, false)
+    } else if (MySQLOperationStatus == "Create") {
+    	  Data: null,
+        report: createReport(launche, MySQLData, true)
+    } else null,
+    
+    spacexRecordSalesforce: if (SalesforceOperationStatus == "Update") {
+         Data: generateUpdateData(createRecord(launche, SalesforceData, "id")),
+        report: createReport(launche, SalesforceData, false)
+    } else if (SalesforceOperationStatus == "Create") {
+    	  Data: null,
+        report: createReport(launche, SalesforceData, true)
+    } else null
+}
+]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="MySQLRecord" ><![CDATA[%dw 2.0
+output application/json
+var launche = vars.currentRecord
+---
+{
+}]]></ee:set-variable>
+							<ee:set-variable variableName="MongoRecord" ><![CDATA[%dw 2.0
+output application/json
+var launche = vars.currentRecord
+---
+{
+}]]></ee:set-variable>
+							<ee:set-variable variableName="SalesforceRecord" ><![CDATA[%dw 2.0
+output application/json
+var launche = vars.currentRecord
+---
+{
+}]]></ee:set-variable>
+						</ee:variables>
+					
+</ee:transform>
+					<set-variable value="#[payload]" doc:name="Set Data" doc:id="9a4da97f-cb84-484c-90e9-33927572ffc0" variableName="DataRecords"/>
+					<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;(&#10;  (if (vars.DataRecords.spacexRecordMongo.report != null) { spacexRecordMongoReport: vars.DataRecords.spacexRecordMongo.report } else {}) ++&#10;  (if (vars.DataRecords.spacexRecordMySQL.report != null) { spacexRecordMySQLReport: vars.DataRecords.spacexRecordMySQL.report } else {}) ++&#10;  (if (vars.DataRecords.spacexRecordSalesforce.report != null) { spacexRecordSalesforceReport: vars.DataRecords.spacexRecordSalesforce.report } else {})&#10;)]" doc:name="Set ReportData" doc:id="2755736f-8ec0-45b0-aeb8-0346157322aa" variableName="ReportData" />
+					<os:retrieve doc:name="Retrieve" doc:id="d8d37383-b854-42d4-8e46-2196d72ed8cb" key='Report' objectStore="Object_storeForReport">
+						<os:default-value ><![CDATA[#[{}]]]></os:default-value>
+					</os:retrieve>
+					<ee:transform doc:name="Transform Message" doc:id="b1006f92-71e8-4a38-b88a-03196499532e" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[
+%dw 2.0
+output application/json
+var updatedPayload = {
+    spacexRecordSalesforce: (payload.spacexRecordMongo default {}) 
+        ++ (vars.ReportData.spacexRecordMongoReport default {}),
+    
+    spacexRecordMySQL: (payload.spacexRecordMySQL default {}) 
+        ++ (vars.ReportData.spacexRecordMySQLReport default {}),
+    
+    spacexRecordMongo: (payload.spacexRecordSalesforce default {}) 
+        ++ (vars.ReportData.spacexRecordSalesforceReport default {})
+}
+
+---
+updatedPayload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<os:store doc:name="Store" doc:id="228505c1-2f37-492b-b23e-38f48248f346" key='Report' objectStore="Object_storeForReport"/>
+					<os:retrieve doc:name="Retrieve Working Mode" doc:id="d9c30943-56dc-4674-95c3-272d5e77982e" key='mode' objectStore="Object_storeForReport" />
+					<set-variable value="#[payload]" doc:name="Set Working Mode" doc:id="fd6a6b5e-475b-4872-8851-d8be355faa6f" variableName="mode" />
+					<choice doc:name="Choice" doc:id="2439afc4-c989-4479-ac5c-98b4f88d9fc9" >
+						<when expression='#[vars.mode == "Working"]'>
+							<flow-ref doc:name="Flow Reference" doc:id="9d32a6bc-d6ed-42dc-9af3-4dac8bf91f21" name="launches-records" />
+						</when>
+					</choice>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+		<ee:transform doc:name="Transform Message" doc:id="249475bd-9798-4809-a648-8f6562875a0e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ 
+  payload.docs map {
+        id: $.id,
+        docType: "launch",
+        name: $.name,
+        success: $.success,
+        details: $.details,
+        date_utc: $.date_utc,
+        rocket_id: $.rocket.id,
+        rocket_name: $.rocket.name
+}
+ 
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:store doc:name="Store" doc:id="e0052f83-2609-41b8-b211-18210b0c72e1" key="pageNumber" objectStore="Object_store">
+			<os:value><![CDATA[#[vars.pageNumber + 1]]]></os:value>
+		</os:store>
+		<choice doc:name="Choice" doc:id="9e7c1907-454c-497a-a73c-df906857dd6f" >
+			<when expression="#[vars.pageNumber &lt;= 2]">
+				<vm:publish queueName="TestQ" doc:name="Publish to Launches-Iterator" doc:id="4f1dd6be-80ae-4c53-85f6-2a0821d2f178" config-ref="VM_Config" timeout="25" />
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Flow Reference" doc:id="63b87cbc-22b1-4f49-a622-98d0bca9eebc" name="ua-1185-spacex-sent-project-impl-mail-Sub_Flow"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="launches-spacexData" doc:id="56cb9909-6eef-4ab6-895e-466f1e112d87" >
+		<os:retrieve doc:name="Retrieve page Number" doc:id="6fb5bee6-f3c5-46a8-9b97-9576ddaf8d64" key="pageNumber" objectStore="Object_store">
+			<os:default-value><![CDATA[1]]></os:default-value>
+		</os:retrieve>
+		<set-variable value="#[payload]" doc:name="Set Page Number1" doc:id="4dc121a0-3e3c-4b10-a4e3-60a697bdf76e" variableName="pageNumber" />
+		<try doc:name="Try" doc:id="a5ae9788-913b-49a2-a18c-1d473772a382" >
+			<http:request method="GET" doc:name="Request to SpaceX" doc:id="cf8a42f7-af69-4732-bdc4-0105e5ccee0f" config-ref="HTTP_Request_configuration_SpaceX" path="/api/launches?">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	page : vars.pageNumber 
+}]]]></http:query-params>
+		</http:request>
+			<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-P-Error_Handler" />
+		</try>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;var spacexData = payload.docs&#10;---&#10;{&#10;  records: spacexData filter ((item) -&gt; &#10;    item.name != null and &#10;    item.date_utc != null and &#10;    item.details != null and &#10;    item.success != null and &#10;    item.rocket != null&#10;  ) map ((item) -&gt; &#10;    {&#10;      id: item.id,&#10;      name: item.name,&#10;      date_utc: item.date_utc,&#10;      details: item.details,&#10;      success: item.success,&#10;      rocket: item.rocket&#10;    }&#10;  )&#10;}]" doc:name="Set Data From spaceX" doc:id="7fa32138-0c41-410e-b6a3-d24403abc784" variableName="spacexData" />
+		<set-variable value="#[payload.hasNextPage]" doc:name="Has Next Page" doc:id="b692348b-2954-4014-8852-cab154888b2f" variableName="hasNextPage" />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;var ids = payload.docs map ((doc) -&gt; doc.id)&#10;// var ids = payload.docs map ((doc) -&gt; doc.id ++ 1)&#10;---&#10;ids]" doc:name="Set ids" doc:id="d8eb5f29-0705-46ea-a1f4-9fbc7cf52cd2" variableName="ids" />
+	</sub-flow>
+	<sub-flow name="launches-getDbData" doc:id="5681c3b6-ef73-4dcc-9965-42876ad4d31a" >
+		<set-variable value='#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns tns http://www.example.com/rocketservice&#10;---&#10;{&#10;  soapenv#Envelope: {&#10;    soapenv#Header: null,&#10;    soapenv#Body: {&#10;      tns#GetLaunchByExternalIdRequest: {&#10;        tns#externalId: vars.requestId&#10;      }&#10;    },&#10;    &#10;    }&#10;    &#10;    }]' doc:name="Set Request Body for Mongo" doc:id="b46cfe4d-6557-4455-be48-e0416819967d" variableName="RequestBodyForMongo"/>
+		<try doc:name="Try" doc:id="542aeb36-6b92-4bef-ab91-636c55921683" >
+			<http:request method="POST" doc:name="Request To Mongo" doc:id="567f4f4f-b6f0-45a9-bba1-d041f14dc8ab" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+			<http:body><![CDATA[#[vars.RequestBodyForMongo]]]></http:body>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="a1b56454-4703-49fe-be7f-78413a1e8f95" type="ANY">
+					<set-variable value="Error" doc:name="Set Mongo Error" doc:id="6fad4e8f-93e3-405c-bbe6-e83f0a215b6c" variableName="MongoError" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;&#10;var responsePayload = payload.soap#Envelope.soap#Body.roc#GetByExternalIdResponse&#10;---&#10;{&#10;  result: &#10;    if (responsePayload is String and responsePayload == "No result for provided id") &#10;      "No result for provided id" &#10;    else &#10;      {&#10;        id: responsePayload.roc#Launch.externalId,&#10;      //  docType: responsePayload.roc#Launch.docType,&#10;        launchName: responsePayload.roc#Launch.launchName default null,&#10;        success: responsePayload.roc#Launch.success as String,&#10;        details: responsePayload.roc#Launch.details,&#10;        date: responsePayload.roc#Launch.date,&#10;        rocketName: responsePayload.roc#Launch.rocketName&#10;      }&#10;}]' doc:name="Set Data From MongoDB" doc:id="ef34be43-b9e8-4ad0-8be8-9dc27e74f096" variableName="mongoData" />
+		<set-variable value="#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;---&#10;{&#10;  soapenv#Envelope: {&#10;    soapenv#Header: null,&#10;    soapenv#Body: {&#10;      roc#GetLaunchByExternalIdRequest: {&#10;        externalId: vars.requestId&#10;      }&#10;    }&#10;  }&#10;}]" doc:name="Set Request Body for MySQL" doc:id="c7c5c1a2-8637-4fb0-af06-610e25a96799" variableName="RequestBodyForMySQL" />
+		<try doc:name="Try" doc:id="3fcef5b2-f12f-4287-a921-ca4931dcd3c7" >
+			<http:request method="POST" doc:name="Request To MySQl" doc:id="72fbfe2f-ad7b-4b61-9694-044f2cd9ee7e" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+			<http:body><![CDATA[#[vars.RequestBodyForMySQL]]]></http:body>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="8250ed68-72d5-490a-b488-59b2ee4ba6f5" >
+					<set-variable value="Error" doc:name="Set MySQLError" doc:id="b2e40be7-f15a-49d0-9cf3-51b5da677be0" variableName="MySQLError" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;ns soap http://schemas.xmlsoap.org/soap/envelope/&#10;&#10;var responsePayload = payload.soap#Envelope.soap#Body.soap#GetLaunchByExternalIdResponse&#10;---&#10;{&#10;  result: &#10;    if (responsePayload.id == null) &#10;      "No result for provided id" &#10;    else &#10;      {&#10;        id: responsePayload.externalId,&#10;        launchName: responsePayload.launchName default null,&#10;        success: if (responsePayload.success == null) null else responsePayload.success as String,&#10;        details: responsePayload.details,&#10;        date: responsePayload.date,&#10;        rocketName: responsePayload.rocketName&#10;      }&#10;}]' doc:name="Set Data From MySQL" doc:id="30ad400b-6eb8-4107-ba49-ef7c02c933b2" variableName="MySQLData" />
+		<try doc:name="Try" doc:id="f6b5b0cb-8cdc-4e79-9781-4d871a49622b" >
+			
+    <http:request method="GET" doc:name="Request To Salesforce" doc:id="382a2c57-8763-4c15-a59d-127338a4a207" 
+                  config-ref="HTTP_Request_configuration_Salesforce" path='#["/contracts/"++ vars.currentRecord.id]'>
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Key" : vars.currentRecord.id
+}]]]></http:headers>
+
+    </http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="513aaf45-64c6-4d69-92c1-f36869a2346e" type="ANY">
+					<set-variable value="Error" doc:name="Set SalesforceError" doc:id="bd326dbb-df53-41c0-a0c4-30ca808ac994" variableName="SalesforceError"/>
+
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;---&#10;{&#10;  result: &#10;    if (payload.id == null) &#10;      "No result for provided id" &#10;    else &#10;      {&#10;        id: payload.id,&#10;        launchName: payload.name default null,&#10;        success: if (payload.success == null) null else payload.success as String,&#10;        details: payload.details,&#10;        date: payload.date_utc,&#10;        rocketName: payload.rocket,&#10;        DateUtc: payload.static_fire_date_utc&#10;      }&#10;}]' doc:name="Set Data From Salesforce" doc:id="947a3690-a310-4bec-851e-8150acb6d83c" variableName="SalesforceData" />
+	</sub-flow>
+	<sub-flow name="launches-records" doc:id="927c529e-a93a-46dc-b2fe-29f0cec8b84e">
+		<choice doc:name="Choice" doc:id="6b53c117-7453-4770-9e9f-37911c24c78e">
+			<when expression='#[vars.DataRecords.operationStatus.mongoDB == "Create"]'>
+				<set-variable value='#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;---&#10;soapenv#Envelope: {&#10;    soapenv#Header: {},&#10;    soapenv#Body: {&#10;        roc#CreateLaunchRequest: {&#10;            externalId: vars.currentRecord.id,&#10;            success: if (vars.currentRecord.success == true) "true" else "false",&#10;             details: vars.currentRecord.details,&#10; //           docType: "Launch",&#10;            launchName: vars.currentRecord.name,&#10;            &#10;           &#10;            date: vars.currentRecord.date_utc as String,&#10;            rocketName: vars.rocketName&#10;        }&#10;    }&#10;}]' doc:name="Set MongoDataForCreate" doc:id="4d7c2380-b397-4289-b41d-7be5a3ef684d" variableName="MongoDataForCreate" />
+				<try doc:name="Try" doc:id="7b272eec-0dbd-46fe-b397-808d1f74e48d" >
+					<http:request method="POST" doc:name="Request To Mongo" doc:id="ef8fd3dd-0d06-4da4-94c0-f440f2c4a8ca" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+					<http:body><![CDATA[#[vars.MongoDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			
+</when>
+			<when expression='#[vars.DataRecords.operationStatus.mongoDB == "Update"]'>
+				<set-variable value='#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;&#10;var record = vars.DataRecords.spacexRecordMongo.Data&#10;&#10;---&#10;soapenv#Envelope: {&#10;  soapenv#Header: null,&#10;  soapenv#Body: {&#10;    roc#UpdateLaunchRequest: {&#10;      "externalId" : vars.currentRecord.id,&#10;     // docType: "Launch",&#10;     (if (record.success? and record.success != null) "success" : (if (record.success as String default false) 1 else 0) else null),&#10;      (if (record.details? and record.details != null) "details" : record.details else null),&#10;      (if (record.name? and record.name != null) "launchName" : record.name else null),&#10;      &#10;     &#10;      (if (record.date_utc? and record.date_utc != null) "date" : record.date_utc else null),&#10;      (if (record.rocket? and record.rocket != null) "rocketName" : record.rocket else null)&#10;    }&#10;  }&#10;}]' doc:name="Set MongoDataForCreate" doc:id="613a6f08-465e-4020-b218-42385d7653d2" variableName="MongoDataForCreate" />
+				<try doc:name="Try" doc:id="4cec367e-4582-433a-be9a-d4099d24bc6d" >
+					<http:request method="POST" doc:name="Request To Mongo" doc:id="2dc34f10-6b8c-4875-9a04-b4dbabf912f1" config-ref="HTTP_Request_configuration_Mongo" path="/api">
+					<http:body><![CDATA[#[vars.MongoDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			</when>
+		
+</choice>
+		<choice doc:name="Choice1" doc:id="bf881ac1-592a-4400-b2c2-4f2b6b330347">
+			<when expression='#[vars.DataRecords.operationStatus.MySQL == "Create"]'>
+				<set-variable value="#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;&#10;var record = vars.currentRecord&#10;&#10;---&#10;soapenv#Envelope: {&#10;  soapenv#Header: {},&#10;  soapenv#Body: {&#10;    roc#CreateLaunchRequest: {&#10;      externalId: record.id,&#10;      success: if (vars.currentRecord.success == &quot;1&quot;) &quot;1&quot; else &quot;0&quot;,&#10;      details: record.details,&#10;      launchName: record.name,&#10;       date: (record.date_utc as Date {format: &quot;uuuu-MM-dd'T'HH:mm:ss.SSS'Z'&quot;}) as String {format: &quot;yyyy-MM-dd&quot;},&#10;      rocketName: vars.rocketName&#10;    }&#10;  }&#10;}]" doc:name="Set Variable" doc:id="cb1e2306-da45-4c22-9f2a-d6887f01bbd5" variableName="MySQLDataForCreate" />
+				<try doc:name="Try" doc:id="7a21ee2f-6502-47dc-ae21-800a45e5baed">
+					<http:request method="POST" doc:name="Request To MySQl" doc:id="c13d3ea8-393b-487a-b374-cce065ed904c" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+					<http:body><![CDATA[#[vars.MySQLDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			
+</when>
+			<when expression='#[vars.DataRecords.operationStatus.MySQL == "Update"]'>
+				<set-variable value="#[%dw 2.0&#10;output application/xml&#10;ns soapenv http://schemas.xmlsoap.org/soap/envelope/&#10;ns roc http://example.com/rocketservice&#10;&#10;var record = vars.DataRecords.spacexRecordMySQL.Data&#10;&#10;---&#10;soapenv#Envelope: {&#10;  soapenv#Header: {},&#10;  soapenv#Body: {&#10;    roc#UpdateLaunchRequest: {&#10;      &quot;externalId&quot; : vars.currentRecord.id,&#10;      (if (record.name? and record.name != null) &quot;launchName&quot; : record.name else null),&#10;      (if (record.success? and record.success != null) &quot;success&quot; : (if (record.success as String default false) 1 else 0) else null),&#10;      (if (record.details? and record.details != null) &quot;details&quot; : record.details else null),&#10;      (if (record.date_utc? and record.date_utc != null) &quot;date&quot; : (record.date_utc as Date {format: &quot;uuuu-MM-dd'T'HH:mm:ss.SSS'Z'&quot;}) as String {format: &quot;yyyy-MM-dd&quot;}  else null),&#10;      (if (record.rocket? and record.rocket != null) &quot;rocketName&quot; : record.rocket else null)&#10;    }&#10;  }&#10;}]" doc:name="Set Variable" doc:id="40de2304-c863-4e79-b83e-066b069dc918" variableName="MySQLDataForCreate" />
+				<try doc:name="Try" doc:id="6caf35b0-5d86-47f7-862b-04b539e1926d" >
+					<http:request method="POST" doc:name="Request To MySQl" doc:id="ae5dd15b-fe78-4414-ac97-4ae6da777a04" config-ref="HTTP_Request_configuration_MySQL" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+					<http:body><![CDATA[#[vars.MySQLDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			</when>
+		
+</choice>
+		<choice doc:name="Choice2" doc:id="a74dd99a-7b62-4650-91ec-5bd35a690692">
+			<when expression='#[vars.DataRecords.operationStatus.Salesforce == "Create"]'>
+				<set-variable value="#[%dw 2.0&#10;import * from dw::core::Strings&#10;output application/json&#10; &#10; &#10;&#10;var record = vars.currentRecord&#10;&#10;---&#10;[&#10;    {&#10;    	&quot;AccountId&quot;: &quot;001WU00000IP5v1YAD&quot;,&#10;        &quot;ExternalId__c&quot;: record.id,&#10;        &quot;SuccessStatus__c&quot;: if (record.success as String == &quot;true&quot;) &quot;success&quot; else &quot;failure&quot;,&#10;        &quot;DateCreation__c&quot;: (record.date_utc as Date {format: &quot;uuuu-MM-dd'T'HH:mm:ss.SSS'Z'&quot;}) as String {format: &quot;yyyy-MM-dd&quot;},&#10;        &quot;Details__c&quot;: record.details,&#10;        &quot;RocketName__c&quot;: vars.rocketName,&#10;        &quot;NameSalesforce__c&quot;: record.name,&#10;       &quot;Status&quot;: &quot;Draft&quot;,&#10;        &quot;StartDate&quot;: &quot;2023-06-26&quot;, // This is a static value in the example&#10;     &quot;ContractTerm&quot;: 1 // This is a static value in the example&#10;    }&#10;]]" doc:name="Set Variable" doc:id="bc01cc51-f0e6-4e83-bd22-01069908022f" variableName="SalesforceDataForCreate" />
+				<try doc:name="Try" doc:id="8bb34d62-0cb2-4f3f-835e-cc4f8ff8277e">
+					<http:request method="POST" doc:name="Request To Salesforce" doc:id="72f1d15e-e659-4eee-9155-4f6c67742e94" config-ref="HTTP_Request_configuration_Salesforce" path="/contracts">
+					<http:body><![CDATA[#[vars.SalesforceDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			</when>
+			<when expression='#[vars.DataRecords.operationStatus.Salesforce == "Update"]'>
+				<set-variable value="#[%dw 2.0&#10;output application/json&#10;var record = vars.DataRecords.spacexRecordSalesforce.Data&#10;---  &#10;{&#10;    &quot;AccountId&quot;: &quot;001WU00000IP5v1YAD&quot;,&#10;     &quot;ExternalId__c&quot;: record.id,&#10; (if (record.success? and record.success != null) &quot;SuccessStatus__c&quot; : (if (record.success as String == &quot;true&quot;) &quot;success&quot; else &quot;failure&quot;) else null),&#10;  (if (record.date_utc? and record.date_utc != null) &quot;DateCreation__c&quot; : (record.date_utc as Date {format: &quot;uuuu-MM-dd'T'HH:mm:ss.SSS'Z'&quot;}) as String {format: &quot;yyyy-MM-dd&quot;} else null),&#10;  (if (record.details? and record.details != null) &quot;Details__c&quot; : record.details else null),&#10;  (if (record.rocket? and record.rocket != null) &quot;RocketName__c&quot; : record.rocket else null),&#10;  (if (record.name? and record.name != null) &quot;NameSalesforce__c&quot; : record.name else null)&#10;   //   &quot;Status&quot;: &quot;Draft&quot;,&#10; //       &quot;StartDate&quot;: &quot;2023-06-26&quot;, // This is a static value in the example&#10; //    &quot;ContractTerm&quot;: 1 // This is a static value in the example&#10;}]" doc:name="Set Variable" doc:id="bd175766-f319-4371-bbdb-950127b50ace" variableName="SalesforceDataForCreate" />
+				<try doc:name="Try" doc:id="c63149cc-083e-4934-a61f-c946598b1907">
+					<http:request method="PUT" doc:name="Request To Salesforce" doc:id="1878419e-06c3-4c9e-82c0-3daf521df789" path="/contracts" config-ref="HTTP_Request_configuration_Salesforce">
+					<http:body><![CDATA[#[vars.SalesforceDataForCreate]]]></http:body>
+				</http:request>
+					<error-handler ref="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" />
+				</try>
+			</when>
+		</choice>
+	
+	
+</sub-flow>
+</mule>

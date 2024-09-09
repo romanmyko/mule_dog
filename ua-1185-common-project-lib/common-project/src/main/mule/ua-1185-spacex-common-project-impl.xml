@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+	<sub-flow name="ua-1185-spacex-common-project-impl-Sub_Flow" doc:id="2453f030-321b-47d6-ac74-d37cdd85b958" >
+		<set-variable value='#[%dw 2.0&#10;output application/dw&#10;---&#10;(&#10;    (vars.ERROR_MESSAGE."logType" default "ERROR: ") ++ &#10;    (vars.ERROR_MESSAGE."description" default " "  ) ++&#10;    "." ++&#10;    (vars.ERROR_MESSAGE."source" default " " ) ++&#10;    ". Error details: {" ++ &#10;    (vars.ERROR_MESSAGE."message" default " ") ++ &#10;    "," ++ &#10;    (vars.ERROR_MESSAGE."code" default 500) ++ &#10;    "}"&#10;)]' doc:name="Set Variable errorLog" doc:id="14a0e9f4-fbd4-406b-bd5e-49e6c5054d68" variableName="errorLog" />
+		<logger level="ERROR" doc:name="Logger errorLog CP" doc:id="72982ecb-6561-495f-b00c-1d61c813676d" message="#[%dw 2.0&#10;output application/java&#10;---&#10;vars.errorLog]" />
+		<ee:transform doc:name="Transform Message Error out" doc:id="bc43641d-c713-44e5-9b28-be98dddfea2f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var inputTime = vars.ERROR_MESSAGE."dateTime" as Time 
+var inputDate = vars.ERROR_MESSAGE."dateTime" as Date
+var inputZone = vars.ERROR_MESSAGE."dateTime" as TimeZone
+---
+{
+	"logType": vars.ERROR_MESSAGE."logType" default "ERROR: ",
+    "code": vars.ERROR_MESSAGE."code" default 500,
+    "message": vars.ERROR_MESSAGE."message" default "",
+    "errorType": vars.ERROR_MESSAGE."errorType" default "",
+    "dateTime": (inputDate ++ ' ' ++ inputTime as String {format: "HH:mm"} ++ ' ' ++ inputZone) default now(),
+    "description": vars.ERROR_MESSAGE."description" default "",
+    "source": vars.ERROR_MESSAGE."source" default ""  
+}]]></ee:set-payload>
+					</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[vars.ERROR_MESSAGE."code" default 500]]></ee:set-variable>
+			</ee:variables>
+				</ee:transform>
+		<flow-ref doc:name="Flow Reference to mail" doc:id="60bea52a-60fc-486b-8471-2e411a3b95ed" name="ua-1185-spacex-common-project-impl-mail-Sub_Flow" targetValue="#[vars.ERROR_MESSAGE]"/>
+		<flow-ref doc:name="Flow Reference to SalesForce" doc:id="3fe777ef-6919-4fc2-9b74-ca2ef896887d" name="ua-1185-spacex-common-project-impl-salesforce-Sub_Flow" targetValue="#[vars.ERROR_MESSAGE]"/>
+	</sub-flow>
+</mule>

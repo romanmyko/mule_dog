@@ -1,0 +1,16 @@
+#%RAML 1.0 Trait
+displayName: pagination
+
+usage: Standart pagination response structure
+
+queryParameters:
+  page:
+    description: Page Number
+    type: integer
+    default: 1
+    required: true
+  limit:
+    description: Amount of launches 
+    type: integer
+    default: 10
+    required: false

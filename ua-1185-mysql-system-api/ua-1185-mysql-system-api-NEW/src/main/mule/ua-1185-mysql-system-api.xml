@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+    <apikit-soap:config httpStatusVarName="httpStatus" name="soapkit-config" port="SpaceXdbServiceSoapPort" service="SpaceXdbService" wsdlLocation="general_crud.wsdl"/>
+	<flow name="api-main" doc:id="fee68245-18e5-4bc9-832e-c33362659ef9">
+        <http:listener config-ref="api-httpListenerConfiguration" path="/SpaceXdbService/SpaceXdbServiceSoapPort">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[attributes.protocolHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+		<azure-key-vault:get-secret doc:name="Get Secret" doc:id="36878641-368e-4e25-8bb6-b109136feb43" config-ref="Azure_Key_Vault_Config_Common_project" name="${azure.secretKey}" targetValue="#[read(payload.value as String)]" target="credentialsDBmySQL"/>
+		<apikit-soap:router config-ref="soapkit-config">
+            <apikit-soap:attributes><![CDATA[#[%dw 2.0
+              output application/java
+              ---
+              {
+                  headers: attributes.headers,
+                  method: attributes.method,
+                  queryString: attributes.queryString
+            }]]]></apikit-soap:attributes>
+        </apikit-soap:router>
+		<error-handler ref="ua-1185-spacex-db-xml-SQL-Error_Handler" />
+
+    </flow>
+    <flow name="GetRocketByExternalId:\soapkit-config">
+		<flow-ref doc:name="GET Rocket by exernal ID" doc:id="514a5402-d9a5-4d0f-b6d2-a79b954a188d" name="getRocketByExternalId"/>
+    </flow>
+    <flow name="GetAllRockets:\soapkit-config">
+		<flow-ref doc:name="GET all Rockets" doc:id="fc3b14e6-aab6-489b-b268-7ee80566def0" name="getAllRockets"/>
+    </flow>
+    <flow name="GetPayloadByExternalId:\soapkit-config">
+		<flow-ref doc:name="GET Payload by external ID" doc:id="bc6bba7c-c1c7-4d8b-be77-f2423d49c5b0" name="getPayloadByExternalId"/>
+    </flow>
+    <flow name="GetAllPayloads:\soapkit-config">
+		<flow-ref doc:name="GET all Payloads" doc:id="9159967e-06ef-4fae-a10b-877d5f574c74" name="getAllPayloads"/>
+    </flow>
+    <flow name="GetLaunchpadByExternalId:\soapkit-config">
+		<flow-ref doc:name="GET Launchpad by external ID" doc:id="3373febe-856b-430b-87ab-159bb008e798" name="getLaunchpadByExternalId"/>
+    </flow>
+    <flow name="GetAllLaunchpads:\soapkit-config">
+		<flow-ref doc:name="GET all Launchpads" doc:id="cac12938-bbc1-4ea4-8be9-9e82b23a8bb9" name="getAllLaunchpads"/>
+    </flow>
+    <flow name="GetLaunchByExternalId:\soapkit-config">
+		<flow-ref doc:name="GET Launch by external ID" doc:id="d8f7da04-ce51-4518-9709-d04d2fde92a9" name="getLaunchByExternalId"/>
+    </flow>
+    <flow name="GetAllLaunches:\soapkit-config">
+		<flow-ref doc:name="GET all Launches" doc:id="c8d6944a-b0a4-47c8-ac0e-9053a210a271" name="getAllLaunches"/>
+    </flow>
+    <flow name="CreateLaunchpad:\soapkit-config">
+		<flow-ref doc:name="Create Launcpad" doc:id="0d94bd35-416e-4ebc-a280-3d672aaacae9" name="createLauncpad"/>
+    </flow>
+    <flow name="CreateLaunch:\soapkit-config">
+		<flow-ref doc:name="Create Launch" doc:id="18da2acd-033b-4217-b23a-0b7252055dcf" name="createLaunch"/>
+    </flow>
+    <flow name="CreateRocket:\soapkit-config">
+		<flow-ref doc:name="Create Rocket" doc:id="8af60ee6-6a84-4d3e-b700-50154d8439b5" name="createRocket"/>
+    </flow>
+    <flow name="CreatePayload:\soapkit-config">
+		<flow-ref doc:name="Create Payload" doc:id="c7b55c08-17f2-49b3-ad64-36dd7f90208d" name="createPayload"/>
+    </flow>
+    <flow name="UpdateLaunchpad:\soapkit-config">
+		<flow-ref doc:name="Update Launchpad" doc:id="ff53f6c0-ceb8-4adc-8442-931cefa6062c" name="updateLaunchpad"/>
+    </flow>
+    <flow name="UpdateLaunch:\soapkit-config">
+		<flow-ref doc:name="Update Launch" doc:id="4cfec15a-ccb1-4498-ba1e-483718cae7db" name="updateLaunch"/>
+    </flow>
+    <flow name="UpdateRocket:\soapkit-config">
+		<flow-ref doc:name="Update Rocket" doc:id="16c82f3d-f891-4427-a941-94c1fb9eb03e" name="updateRocket"/>
+    </flow>
+    <flow name="UpdatePayload:\soapkit-config">
+		<flow-ref doc:name="Update Payload" doc:id="c2fc5b10-9abb-4a74-aed1-461b08cf2266" name="updatePayload"/>
+    </flow>
+    <flow name="DeleteRocketByExternalId:\soapkit-config" doc:id="ee476633-ead0-41d6-ac48-16aceaef68bb">
+		<flow-ref doc:name="Delete Rocket By External Id" doc:id="337bcf16-3f80-4b84-9fb8-37898db09985" name="deleteRocketByExternalId"/>
+    </flow>
+    <flow name="DeletePayloadByExternalId:\soapkit-config">
+		<flow-ref doc:name="delete Payload By External Id" doc:id="43866166-45d3-46f7-87c3-e59cb61374b9" name="deletePayloadByExternalId"/>
+    </flow>
+    <flow name="DeleteLaunchpadByExternalId:\soapkit-config">
+		<flow-ref doc:name="delete Launchpad By External Id" doc:id="b6e166f4-e1a6-4392-ac4b-44e1482f7194" name="deleteLaunchpadByExternalId"/>
+    </flow>
+    <flow name="DeleteLaunchByExternalId:\soapkit-config">
+		<flow-ref doc:name="delete Launch By External Id" doc:id="cf909cfc-e5d5-4d79-8ddf-010fea1a3876" name="deleteLaunchByExternalId"/>
+    </flow>
+</mule>

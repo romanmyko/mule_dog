@@ -1,0 +1,182 @@
+#%RAML 1.0
+baseUri: https://api.spacexdata.com/v4
+title: space-x-system-api
+version: v1
+description: Implementation of SpaceX REST API
+
+annotationTypes:
+  authRequired:
+    type: boolean
+    description: Indicates if authentication is required for the endpoint
+
+traits: 
+  common: !include traits/commonTraits.raml
+  pagination: !include traits/pagination.raml
+  standard-error-response: !include traits/errorResponse.raml
+
+types:
+  Core: !include datatypes/coreDataType.raml
+  Capsule: !include datatypes/capsuleDataType.raml
+  Launch: !include datatypes/launchDataType.raml
+  Launchpad: !include datatypes/launchpadDataType.raml
+  Payload: !include datatypes/payloadDataType.raml
+  Rockets: !include /datatypes/rocketDataType.raml
+
+/cores:
+  get:
+    is: [common, standard-error-response]
+    (authRequired): false
+    displayName: Get all cores
+    description: Retrieves all cores
+    responses:
+      200:
+        body:
+            application/json:
+              type: Core[]
+              examples: 
+                output: !include examples/coresExample.json
+  /{id}:
+    uriParameters:
+      id:
+        description: id is the ID of the core
+        type: string
+    get:
+      is: [common, standard-error-response]
+      (authRequired): false
+      displayName: Get one core
+      description: Retrieves one core based on id
+      responses:
+        200:
+          body:
+            application/json:
+              type: Core
+              examples: 
+                output: !include examples/coreExample.json
+/capsules:
+  get:
+    is: [ common, standard-error-response ]
+    (authRequired): false
+    displayName: Get all capsules
+    description: Get All Capsules details.
+    responses:
+      200:
+        body:
+          application/json:
+            type: Capsule[]
+            example: !include examples/capsulesExample.json
+  /{id}:
+    get:
+      is: [ common, standard-error-response  ]
+      (authRequired): false
+      displayName: Get one capsule
+      description: Get Capsules details by ID.
+      responses:
+        200:
+          body:
+            application/json:
+              type: Capsule
+              example: !include examples/capsuleExample.json
+/launches:
+  get:
+    displayName: Get All Launches
+    description: Returns a list of all launches based on the given query parameters 
+    is: [pagination, standard-error-response]
+    responses:
+      200:
+        body:
+          application/json:
+            type: Launch[]
+            example: !include examples/launchExampleList.json
+  /{id}:
+    uriParameters:
+      id:
+        description: The ID of the launch
+        type: string
+    get:
+      displayName: Get launch by ID
+      description: Gets a launch by ID
+      responses:
+        200:
+          body:
+            application/json:
+              type: Launch
+              example: !include examples/launchExample.json
+/launchpads:
+  get:
+    is: [common, standard-error-response]
+    (authRequired): false
+    displayName: Get all launchpads
+    description: Retrives all launchpads
+    responses:
+      200:
+        body:
+            application/json:
+              type: Launchpad[]
+              examples: 
+                output: !include examples/launchpadsExample.json
+  /{id}:
+    uriParameters:
+      id:
+        description: id is the ID of the launchpad
+        type: string
+    get:
+      is: [common, standard-error-response]
+      (authRequired): false
+      displayName: Get one launchpad
+      description: Retrives one launchpad based on id
+      responses:
+        200:
+          body:
+            application/json:
+              type: Launchpad
+              examples: 
+                output: !include examples/launchpadExample.json
+/payloads:
+  get:
+    is: [ common, standard-error-response  ] 
+    (authRequired): false
+    displayName: Get all payloads
+    description: Get All Payloads
+    responses:
+      200:
+        body:
+          application/json:
+            type: Payload[]
+            example: !include examples/payloadsExample.json
+  /{id}:
+    get:
+      is: [ common, standard-error-response  ] 
+      (authRequired): false
+      displayName: Get one payload
+      description: Get Payloads by ID.
+      responses:
+        200:
+          body:
+            application/json:
+              type: Payload
+              example: !include examples/payloadExample.json
+
+/rockets:
+  get:
+    is: [ standard-error-response ]
+    displayName: Get all rockets
+    description: Get All Rockets details.
+    responses:
+      200:
+        body:
+          application/json:
+            type: Rockets[]
+            example:
+              !include /examples/rocketsExample.json
+  /{id}:
+    get:
+      is: [ standard-error-response ]
+      displayName: Get one rocket
+      description: Get Rocket details by ID.
+      responses:
+        200:
+          body:
+            application/json:
+              type: Rockets
+              example:
+                !include /examples/rocketExample.json

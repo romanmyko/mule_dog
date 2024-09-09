@@ -1,0 +1,14 @@
+http:
+  host: "![BIz3GTN5CUdDE0yfEpFP1A==]"
+  port: "![gB0ZmwZx3AFsTUrWg8ySFA==]"
+salesforce:
+  password: "![9MvdJCYfdtzp4aXJ3IXm4w==]"
+  username: "![RckXdMovdW+JocdRjRfIIqDE0R3XSuIlHl8Tz5qg+/aqrsEVzkMRPLwFaNc9XZcH]"
+  token: "![R1kzyZGw/DUb9g1zbg0xcXAz5EZdEDGUN8Yc+ZbfegE=]"
+  url: "![u9Vng8WJbmoGElp4P4EQwWYBOYyHPnS8p1HFUl+GEG1ar8vUfLUMVM5Zx5a2cazsIpvqmfKsqakFK4PZOwqkpA==]"
+azure:
+  clientId: "![wo2bvYmj/K4x/XXAPlSAWa5LGY/XQ4yh5c65gGjCccrZN9ElKMIex523Kstoymac]"
+  tenantId: "![LGljRKGENNHPCpkytZREw4aRt71+HmiglTFyZ3P1Hq68CsYflCyFpkNd7rfMQiPa]"
+  clientSecret: "![AlHvfHkOcVfJchsn7S9wBe/qTuxNt7Uaw4MxzxqlP39KEpo5MsGtVKqbJJzN5aT1]"
+  vaultName: "![sMYwRbDdR7vAt6klUiJybA==]"
+  secretName: "![RQLCDzK8OkjP4oJQ1xdCKQ==]"

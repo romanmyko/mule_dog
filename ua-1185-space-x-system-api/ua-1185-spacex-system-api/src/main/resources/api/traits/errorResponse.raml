@@ -1,0 +1,55 @@
+#%RAML 1.0 Trait
+displayName: errorResponse
+
+usage: Standart error response structure
+
+responses:
+      204:
+        description:
+          The request succeeded, but there is no response.
+        body:
+          application/json:
+            example: '[]'
+      400:
+        description: The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).
+        body:
+          application/json:
+            type: object
+            example: 
+              {
+                "Error": "Mongoose error is shown, with suggestions to fix the query.",
+                "Code" : "400 Bad Request"
+              }
+      404:
+        description:
+          The server cannot find the requested resource.
+        body:
+            application/json:
+              type: object
+              example: 
+                {
+                  "Error": "Not Found",
+                  "Code" : "404 NOT FOUND"
+                }
+      500:
+        description: 
+          An internal processing error occurred while processing the API request.
+        body:
+          application/json:
+            type: object
+            example:
+              {
+                "Error": "Internal Server Error",
+                "Code": "500 Internal Server Error"
+              }
+      501:
+        description:
+          The method has not been implemented.
+        body:
+          application/json:
+            type: object
+            example:
+              {
+                "Error": "Not Implemented",
+                "Code": "501 Not Implemented "
+              }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="fe982120-b92b-46d2-8a21-bc8a03dcb811" >
+		<salesforce:basic-connection username="${secure::salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.token}" url="${secure::salesforce.url}"/>
+	</salesforce:sfdc-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="21352e8e-6fbe-4b7b-adca-5971e447fec8" file="config/local-out.yaml" key="1111111111111111"/>
+	<http:request-config name="HTTP_Request_configuration_MySQL" doc:name="HTTP Request configuration" doc:id="facc74d9-5a4b-49e1-b766-60e278500eda" >
+		<http:request-connection host="ua-1185-mysql-system-api.us-e2.cloudhub.io" connectionIdleTimeout="300000"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_Mongo" doc:name="HTTP Request configuration" doc:id="404094a2-23a3-4e55-96a7-cdcee7c94092" >
+		<http:request-connection host="ua-1185-mongo-system-api.us-e2.cloudhub.io" />
+	</http:request-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="30195365-46f4-472b-a59f-db1894541703" entryTtl="10" entryTtlUnit="MINUTES" expirationInterval="3" expirationIntervalUnit="HOURS" config-ref="ObjectStore_Config" />
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="ad5c9fd1-c7f6-4ac1-a930-f0126326d40c" />
+	<file:config name="Randomizer_File_Config" doc:name="File Config" doc:id="721fdc08-c067-471d-a39d-f5f6064eeeb3" >
+		<file:connection workingDir="${app.home}" />
+	</file:config>
+	<wsc:config name="Web_Service_Consumer_Config_SQL" doc:name="Web Service Consumer Config" doc:id="22c475be-17f8-482d-b0b2-0460eddffcde" >
+		<wsc:connection wsdlLocation="http://ua-1185-mysql-system-api.us-e2.cloudhub.io/SpaceXdbService/SpaceXdbServiceSoapPort?wsdl" service="SpaceXdbService" port="SpaceXdbServiceSoapPort" address="http://ua-1185-mysql-system-api.us-e2.cloudhub.io/SpaceXdbService/SpaceXdbServiceSoapPort" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_MONGO" doc:name="Web Service Consumer Config" doc:id="d95cd024-2f52-4d5e-b35e-41a9ede66515" >
+		<wsc:connection wsdlLocation="http://ua-1185-mongo-system-api.us-e2.cloudhub.io/api?wsdl" service="SpaceXdbService" port="SpaceXdbServiceSoapPort" address="http://ua-1185-mongo-system-api.us-e2.cloudhub.io/api/*" />
+	</wsc:config>
+			<http:request-config name="HTTP_Request_configuration_SpaceX" doc:name="HTTP Request configuration" doc:id="86ec997b-425c-4b9a-840f-940297d7891a" >
+		<http:request-connection host="ua-1185-spacex-system-api.us-e2.cloudhub.io" />
+	</http:request-config>
+	<http:listener-config name="HTTPS_Listener_config" doc:name="HTTP Listener config" doc:id="601c3b48-3ca9-42c8-9c2e-e71c5b9825df" >
+		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="8082" tlsContext="TLS_Context">
+		</http:listener-connection>
+	</http:listener-config>
+	<import doc:name="Import" doc:id="82d3a078-09e3-4dcf-99c0-c17b14d3bf53" file="ua-1185-spacex-common-project-config.xml" />
+	<import doc:name="Import" doc:id="ec447a6b-7369-40a4-96b2-1e6b2b7df288" file="ua-1185-spacex-common-project-impl.xml" />
+	<import doc:name="Import" doc:id="9ea5c1b9-b2eb-422f-b38e-d1a9f8b396e0" file="ua-1185-spacex-common-project-main-error.xml" />
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="d8931d38-4c7c-41b7-9468-7ac804bafcd7" />
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="b150519e-00c8-4bc5-a8d0-268a1dab4026" >
+		<tls:key-store type="pkcs12" path="keystore.p12" alias="mule-server" keyPassword="xxc45rty" password="xxc45rty" />
+	</tls:context>
+	<import doc:name="Import" doc:id="60d03f30-ee92-4189-babd-03eb57f398ca" file="ua-1185-spacex-common-project-sender.xml" />
+	<import doc:name="Import" doc:id="6154edf3-dc2f-4e8e-b68c-74aaf8a79303" file="ua-1185-spacex-process-api-error.xml" />
+
+	<os:object-store name="Object_store_sync" doc:name="Object store" doc:id="75a2dff1-cc5f-40f8-a5a0-0c844f6e067e" entryTtl="10" expirationInterval="3" expirationIntervalUnit="HOURS" config-ref="ObjectStore_Config_sync" entryTtlUnit="MINUTES"/>
+	<os:config name="ObjectStore_Config_sync" doc:name="ObjectStore Config" doc:id="9d003952-75ee-4164-9a6d-9d6ed365c101" />
+	
+
+	<http:request-config name="HTTP_Request_configuration_Salesforce" doc:name="HTTP Request configuration" doc:id="344cf570-ab42-445a-81a5-5c5ad7397ce9" >
+		<http:request-connection connectionIdleTimeout="300000" host="ua-1185-salesforce-system-api.us-e2.cloudhub.io"/>
+	</http:request-config>
+	<os:object-store name="Object_storeForReport" doc:name="Object store" doc:id="91527ac6-b01b-407f-9e55-20c704a969d7" />
+
+</mule>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="ua-1185-spacex-mongo-Error_Handler" doc:id="f7a9e5e7-0b85-4dc0-bee4-976cba0e606c" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate MONGO:CONNECTIVITY" doc:id="7ee3ea01-b4e4-4df7-9460-c750764fbf52" type="MONGO:CONNECTIVITY" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 503,&#10;	"message": "Service Unavailable",&#10;	"errorType": "MONGO:CONNECTIVITY",&#10;	"dateTime": now(),&#10;	"description": "Failed to connect to MongoDB server",&#10;	"source": "Mongo DB"&#10;}]' doc:name="Variable MONGO:CONNECTIVITY" doc:id="40e7a73b-a7fb-438d-8cbc-185bfaefaab0" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="a951a3ab-931a-4042-8e3c-223a287313c7" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate MONGO:INVALID_INPUT" doc:id="0a76cfd4-ca42-48a6-bfcc-20d0d0675222" type="MONGO:INVALID_INPUT" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Service Unavailable",&#10;	"errorType": "MONGO:INVALID_INPUT",&#10;	"dateTime": now(),&#10;	"description": "The input provided is invalid",&#10;	"source": "Mongo DB"&#10;}]' doc:name="Variable MONGO:INVALID_INPUT" doc:id="d1139f7b-78c1-4298-ace0-3e0fcd2ea566" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="a6162b88-10a2-4a83-9ce7-0c4944697772" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate MONGO:TIMEOUT" doc:id="3ddec32e-46ec-4066-aa3e-b8836b51487e" type="MONGO:TIMEOUT" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 504,&#10;	"message": "Gateway Timeout",&#10;	"errorType": "MONGO:TIMEOUT",&#10;	"dateTime": now(),&#10;	"description": "The request to MongoDB timed out",&#10;	"source": "Mongo DB"&#10;}]' doc:name="Variable MONGO:TIMEOUT" doc:id="47ed866a-dc07-4ccd-9c42-2e214c1831f1" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project xml-Impl" doc:id="7b110784-eaca-4afe-9336-4575cb024aa6" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue MONGO:NOT_FOUND" doc:id="c88ef4a4-44c8-427e-ae18-fcd63763aa66" type="MONGO:NOT_FOUND" >
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 404,&#10;	"message": "Not Found",&#10;	"errorType": "MONGO:NOT_FOUND",&#10;	"dateTime": now(),&#10;	"description": "The requested document was not found in MongoDB",&#10;	"source": "Mongo DB"&#10;}]' doc:name="Variable  MONGO:NOT_FOUND" doc:id="4fd451ec-f838-476b-9b5f-ac35d8cccd99" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project  xml-Impl" doc:id="f3afe71c-5c1c-463e-9d7f-35a277cf9c1e" name="ua-1185-spacex-common-project-impl-xml-Sub_Flow" />
+		</on-error-continue>
+	</error-handler>
+</mule>

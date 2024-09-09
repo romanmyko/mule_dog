@@ -1,0 +1,259 @@
+All requests requires POST method 4 correct execution
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+http://ua-1185-mongo-system-api.us-e2.cloudhub.io/api
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:CreateRocketRequest>
+         <externalId></externalId>
+         <name></name>
+         <active></active>
+         <stages></stages>
+         <costPerLaunch></costPerLaunch>
+         <description></description>
+      </roc:CreateRocketRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:CreatePayloadRequest>
+        <externalId></externalId>
+	<name></name>
+	<type></type>
+	<weight></weight>
+	<orbit></orbit>
+	<apoapsis></apoapsis>
+	<periapsis></periapsis>
+      </roc:CreatePayloadRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:CreateLaunchRequest>
+         <externalId></externalId>
+         <success></success>
+         <details></details>
+         <launchName></launchName>
+         <date></date>
+         <rocketName></rocketName>
+      </roc:CreateLaunchRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:CreateLaunchpadRequest>
+         <externalId></externalId>
+         <name></name>
+         <locality></locality>
+         <region></region>
+         <status></status>
+      </roc:CreateLaunchpadRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetRocketByExternalIdRequest>
+         <externalId></externalId>
+      </roc:GetRocketByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetPayloadByExternalIdRequest>
+         <externalId></externalId>
+      </roc:GetPayloadByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetLaunchByExternalIdRequest>
+         <externalId></externalId>
+      </roc:GetLaunchByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetLaunchpadByExternalIdRequest>
+         <externalId></externalId>
+      </roc:GetLaunchpadByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetAllRocketsRequest/>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetAllPayloadsRequest/>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetAllLaunchesRequest/>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:GetAllLaunchpadsRequest/>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:DeleteRocketByExternalIdRequest>
+         <externalId></externalId>
+      </roc:DeleteRocketByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:DeletePayloadByExternalIdRequest>
+         <externalId></externalId>
+      </roc:DeletePayloadByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:DeleteLaunchByExternalIdRequest>
+         <externalId></externalId>
+      </roc:DeleteLaunchByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:DeleteLaunchpadByExternalIdRequest>
+         <externalId></externalId>
+      </roc:DeleteLaunchpadByExternalIdRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:UpdateRocketRequest>
+         <externalId></externalId>
+         <name></name>
+         <active></active>
+         <stages></stages>
+         <costPerLaunch></costPerLaunch>
+         <description></description>
+      </roc:UpdateRocketRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:UpdatePayloadRequest>
+         <externalId></externalId>
+         <name></name>
+         <type></type>
+         <weight></weight>
+         <orbit></orbit>
+         <apoapsis></apoapsis>
+         <periapsis></periapsis>
+      </roc:UpdatePayloadRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:UpdateLaunchRequest>
+         <externalId></externalId>
+         <success></success>
+         <details></details>
+         <launchName></launchName>
+         <date></date>
+         <rocketName></rocketName>
+      </roc:UpdateLaunchRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:roc="http://example.com/rocketservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <roc:UpdateLaunchpadRequest>
+         <externalId></externalId>
+         <name></name>
+         <locality></locality>
+         <region></region>
+         <status></status>
+      </roc:UpdateLaunchpadRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------------------------------------------------------------------------------------------------------------------------------------

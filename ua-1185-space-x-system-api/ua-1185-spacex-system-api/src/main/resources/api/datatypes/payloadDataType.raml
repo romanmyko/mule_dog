@@ -1,0 +1,50 @@
+#%RAML 1.0 DataType
+
+displayName: PayloadsOne
+description: Defines the fields in PayloadsOne Datatype
+
+type: object
+properties:
+  dragon: !include dragonDataType.raml
+  name: string
+  type: string
+  reused:
+    type: boolean
+    default: false
+  launch: string
+
+  customers: 
+    type: array
+    items: string
+
+  norad_ids: 
+    type: array
+    items: number
+
+  nationalities:
+     type: array
+     items: string
+
+  manufacturers:
+     type: array
+     items: string
+
+  mass_kg: number
+  mass_lbs: number
+  orbit: string
+  reference_system: string
+  regime: string
+  longitude: number 
+  semi_major_axis_km: number
+  eccentricity: number
+  periapsis_km: number
+  apoapsis_km: number
+  inclination_deg: number
+  period_min: number
+  lifespan_years: number
+  epoch: datetime
+  mean_motion: number
+  raan: number
+  arg_of_pericenter: number
+  mean_anomaly: number
+  id: string 

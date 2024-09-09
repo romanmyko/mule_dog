@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_a87dbe84_c134_4735_8543_2813b1fac5d6_Output_Variables_externalId = java_lang_Object | Null
+type java_lang_Object = {|  |} {"typeAlias": "Object",
+"class": "java.lang.Object",
+"typeId": "java.lang.Object"}
+
+
+

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="ua-1185-spacex-process-api-sync3-db-Error_Handler" doc:id="ff77448e-4e76-484b-aa27-86edd162b728" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue ANY" doc:id="01411ee0-1318-4619-9839-0278bfbaa26e" type="ANY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "DB:BAD_REQUEST",&#10;	"dateTime": now(),&#10;	"description": "The response from the database is not correct, there may be no connection to the database",&#10;	"source": "Process api"&#10;}]' doc:name="Variable DB:BAD_REQUEST" doc:id="e9468aa7-4d53-4d95-a105-8e6859c657a8" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="0ac7d9cf-badd-4759-9dd5-1ea379897d77" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-continue>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-sync3-spacex-Error_Handler" doc:id="d085e060-220c-455c-9797-628fb5c58381" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate ANY" doc:id="f1b6b326-ba7c-4e2a-bafe-59b45f1c19e2" type="ANY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "DB:BAD_REQUEST",&#10;	"dateTime": now(),&#10;	"description": "The response from the spaceX is not correct, there may be no connection to the SpaceX",&#10;	"source": "Process api"&#10;}]' doc:name="Variable DB:BAD_REQUEST" doc:id="93773f87-e64f-400d-b409-93e997f5c936" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="34e822ee-f0f5-4bb3-9e05-e2ac7998ac6a" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-salesforce-listener-error" doc:id="c8790738-edeb-4433-a6fd-2191a1bd4371" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue HTTP:INTERNAL_SERVER_ERROR" doc:id="f3b48327-db3d-4939-922e-1ee870bf29b0" type="HTTP:INTERNAL_SERVER_ERROR">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "HTTP:INTERNAL_SERVER_ERROR",&#10;	"dateTime": now(),&#10;	"description": "The response from the database is not correct, there may be no connection to the database",&#10;	"source": "Process api"&#10;}]' doc:name="Variable HTTP:INTERNAL_SERVER_ERROR" doc:id="898587f6-e5dd-4087-882e-d2d15f945ea8" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="b7e7ecff-e126-4acb-a3b0-203a347fdc1f" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue HTTP:BAD_REQUEST" doc:id="39bd1c0c-5310-4dc2-9292-a6960611467d" type="HTTP:BAD_REQUEST">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "HTTP:BAD_REQUEST",&#10;	"dateTime": now(),&#10;	"description": "The response from the database is not correct, there may be no connection to the database",&#10;	"source": "Process api"&#10;}]' doc:name="Variable HTTP:BAD_REQUEST" doc:id="ae95d886-38b0-479a-9ca8-303a1fa0f830" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="f87b068f-02ba-4ab7-aed5-5dadad7bc020" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-continue>
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue  salesforce listener ANY" doc:id="5e1b6f3f-1e46-4461-86a1-1d9cea05d77d" type="ANY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "ANY",&#10;	"dateTime": now(),&#10;	"description": "The response from the database is not correct, there may be no connection to the database",&#10;	"source": "Process api"&#10;}]' doc:name="Variable  salesforce listener ANY" doc:id="378d56c1-5179-48e3-a9a1-daeeddab6286" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="1948d394-9705-428c-afcb-302ba902d8b2" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-continue>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-VM-Error_Handler" doc:id="d1ef7977-1495-4e0b-bab3-d9c5384f5abf" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate VM:CONNECTIVITY" doc:id="fb1430e2-5c66-4257-a3ff-dc8224c9a1fa" type="VM:CONNECTIVITY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "VM:CONNECTIVITY",&#10;	"dateTime": now(),&#10;	"description": "Failed to establish a connection to the VM",&#10;	"source": "VM Service"&#10;}]' doc:name="Variable VM:CONNECTIVITY" doc:id="646df725-f983-4202-8f20-d68d4489ea61" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="db303af5-1d32-41d4-b21b-da00d9fa7c64" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate VM:QUEUE_TIMEOUT" doc:id="0fac055c-33e4-455f-974f-8b46e1e3369f" type="VM:QUEUE_TIMEOUT">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Bad Request",&#10;	"errorType": "VM:QUEUE_TIMEOUT",&#10;	"dateTime": now(),&#10;	"description": "The VM queue timed out",&#10;	"source": "Queue Manager"&#10;}]' doc:name="Variable VM:QUEUE_TIMEOUT" doc:id="ba4025d2-b45d-4771-90d4-0403c45e1970" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="f50fdabe-93cc-4e48-ac64-70df1cbdb307" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate VM:RETRY_EXHAUSTED" doc:id="20cb1462-cf0a-4460-a162-337ae67938dd" type="VM:RETRY_EXHAUSTED">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Bad Request",&#10;	"errorType": "VM:RETRY_EXHAUSTED",&#10;	"dateTime": now(),&#10;	"description": "The VM retry attempts were exhausted",&#10;	"source": "Retry Service"&#10;}]' doc:name="Variable VM:RETRY_EXHAUSTED" doc:id="bc28d25d-7829-43c9-816e-44a7347cc916" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="3b5c1ee5-0d69-45d6-9211-61899d179632" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-JMS-Error_Handler" doc:id="ef1c4d42-96f2-42d5-8dea-da8b318b4929" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:CONNECTIVITY" doc:id="676c59b3-94f0-4af5-b9c8-f1e6e9bde4ad" type="JMS:CONNECTIVITY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:CONNECTIVITY",&#10;	"dateTime": now(),&#10;	"description": "Failed to establish a connection to the JMS provider",&#10;	"source": "JMS Connector"&#10;}]' doc:name="Variable JMS:CONNECTIVITY" doc:id="71dccba6-3bd3-47aa-aa89-fc40b9ebe716" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="b8585e10-a6df-4f8a-bf25-41fd44fb156c" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:DESTINATION_NOT_FOUND" doc:id="b0596912-0a4f-4b8e-98d2-4d1ff8c81c2e" type="JMS:DESTINATION_NOT_FOUND">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:DESTINATION_NOT_FOUND",&#10;	"dateTime": now(),&#10;	"description": "The specified JMS destination could not be found",&#10;	"source": "Destination Service"&#10;}]' doc:name="Variable JMS:DESTINATION_NOT_FOUND" doc:id="454898bf-9d42-4df7-816b-2a65a4004cda" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="53538c87-eec9-441b-a934-77b45c998235" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:ILLEGAL_BODY" doc:id="f8fa5648-4664-4f37-92a2-987b370ca430" type="JMS:ILLEGAL_BODY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:ILLEGAL_BODY",&#10;	"dateTime": now(),&#10;	"description": "The JMS message body is illegal or malformed",&#10;	"source": "Message Processor"&#10;}]' doc:name="Variable JMS:ILLEGAL_BODY" doc:id="4855ea6a-ebb4-43a8-a3df-00761b109483" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="281a30cd-ebe2-40fd-ae46-55d440def610" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:PUBLISHING" doc:id="f1385310-023a-4dd7-8a1b-0f103e0104dd" type="JMS:PUBLISHING">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 400,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:PUBLISHING",&#10;	"dateTime": now(),&#10;	"description": "Failed to publish a message to the JMS destination",&#10;	"source": "Publishing Service"&#10;}]' doc:name="Variable JMS:PUBLISHING" doc:id="4b5d10dd-d4f0-40d8-9afc-4700fc39f059" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="880e87f5-8567-496f-95a3-8af20744d3dd" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:RETRY_EXHAUSTED" doc:id="09218925-76c9-4f6e-bf88-e88cbb16179e" type="JMS:RETRY_EXHAUSTED">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:RETRY_EXHAUSTED",&#10;	"dateTime": now(),&#10;	"description": "The JMS retry attempts were exhausted",&#10;	"source": "Retry Manager"&#10;}]' doc:name="Variable JMS:RETRY_EXHAUSTED" doc:id="859bddd1-fc9e-4030-a76a-05e4e0a5490b" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="97da6ed2-8f80-47b7-af81-45336ff50d0a" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate JMS:SECURITY" doc:id="ad8a0fca-734e-43e2-a51c-42f84d55848a" type="JMS:SECURITY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Bad Request",&#10;	"errorType": "JMS:SECURITY",&#10;	"dateTime": now(),&#10;	"description": "A security error occurred with the JMS provider",&#10;	"source": "Security Service"&#10;}]' doc:name="Variable JMS:SECURITY" doc:id="52cf0dda-f378-4a7f-8056-fdf662c1f9d0" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="a9bd0a90-a214-41f8-906c-e149290e116e" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-launche-iterrator-P-Error_Handler" doc:id="f4d4a501-15e7-4260-b367-70bbc5531df2" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate ANY" doc:id="fd9f33af-f6e5-4368-ade9-3c0ab7d4b231" type="ANY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Serice Error",&#10;	"errorType": "ANY",&#10;	"dateTime": now(),&#10;	"description": "Problem with connection to Database service",&#10;	"source": "launche-iterrator"&#10;}]' doc:name="Variable ANY" doc:id="f3e8fd6c-db1b-415f-a3e9-75f9c6269e20" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="ded290b2-c498-496b-a78c-3a31aabe472d" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-process-api-launche-iterrator-C-Error_Handler" doc:id="9fd987f6-1f0a-4fe9-8381-4aeb62fec5b1" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue ANY" doc:id="26c593a1-3cef-41ce-a169-26c2e4f9d3a7" type="ANY">
+			<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"logType":"Error: ",&#10;	"code": 500,&#10;	"message": "Serice Error",&#10;	"errorType": "ANY",&#10;	"dateTime": now(),&#10;	"description": "Problem with connection to Database service",&#10;	"source": "launche-iterrator"&#10;}]' doc:name="Variable ANY" doc:id="6d221fa9-1667-4422-bbdc-cf395e4a1ae0" variableName="ERROR_MESSAGE" />
+			<flow-ref doc:name="Flow Reference Common Project Impl" doc:id="8de1e513-8452-4187-8b2f-33142f288dac" name="ua-1185-spacex-common-project-impl-Sub_Flow" />
+		</on-error-continue>
+	</error-handler>
+</mule>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+	<http:request-config name="SpaceX-API-Request-Config" doc:name="HTTP Request configuration" doc:id="df96877d-3776-48a7-803c-84ccbeaa3614" basePath="${request_spaceX.base}" >
+		<http:request-connection host="${request_spaceX.host}" streamResponse="true"/>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="125b1aa9-f601-461d-bbd9-9af1bc13d9b3" file="${env}-properties.yaml" />
+	<import doc:name="Import" doc:id="529dbf50-ae96-447a-b964-1a945e546dfc" file="ua-1185-spacex-api-error.xml" />
+	<import doc:name="Import" doc:id="acf361e4-2085-43ce-a0d8-17d7cdca69a5" file="ua-1185-spacex-common-project-impl.xml" />
+	<global-property doc:name="Global Property" doc:id="d16e6bed-0389-45f7-bac6-6ba91b1e2dcc" name="env" value="local" />
+	<import doc:name="Import" doc:id="1fbc1c79-8c21-4b7a-b3db-c5d97e81e0c3" file="ua-1185-spacex-common-project-config.xml" />
+	<import doc:name="Import" doc:id="0367c2b0-7fac-4208-87d0-c6d85823c858" file="ua-1185-spacex-common-project-main-error.xml" />
+	<import doc:name="Import" doc:id="a774e1af-c6c5-4e8b-be78-c2c13a63aba7" file="ua-1185-spacex-common-project-sender.xml" />
+	<import doc:name="Import" doc:id="15aee3ae-ded8-47e2-863d-393312c4d540" file="ua-1185-spacex-common-project-main-error.xml" />
+</mule>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<salesforce:sfdc-config name="Salesforce_Global_Config" doc:name="Salesforce Config" doc:id="62d9f154-408e-4680-962f-e29018ff8e3d" >
+		<salesforce:basic-connection username="#[vars.key.username]" password="#[vars.key.password]" securityToken="#[vars.key.securitytoken]" />
+	</salesforce:sfdc-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="716cedf4-1716-4a01-849e-b418bfa44dc2" file="${env}-properties.yaml" />
+	<import doc:name="Import" doc:id="ef8b1ff7-069e-4a92-94d3-383201686e71" file="ua-1185-spacex-api-error.xml" />
+	<import doc:name="Import" doc:id="46d154fa-0aad-4cb7-9820-0b171f92bdba" file="ua-1185-spacex-common-project-impl.xml" />
+	<global-property doc:name="Global Property" doc:id="c2f7e302-5112-4b6a-9ff5-e3f397d7866f" name="env" value="local" />
+	<import doc:name="Import" doc:id="030af654-95b5-4d1a-923e-c13983d0da4a" file="ua-1185-spacex-common-project-config.xml" />
+	<import doc:name="Import" doc:id="615278f8-3de2-42b2-85bd-505f90808e4b" file="ua-1185-spacex-common-project-main-error.xml" />
+	<import doc:name="Import" doc:id="9a9af200-8de9-43a4-83c0-c42d0084af27" file="ua-1185-spacex-common-project-sender.xml" />
+	<import doc:name="Import" doc:id="bacb7c86-51ba-4b29-b2b7-eda84a125bb8" file="ua-1185-spacex-salesforce-error.xml" />
+</mule>

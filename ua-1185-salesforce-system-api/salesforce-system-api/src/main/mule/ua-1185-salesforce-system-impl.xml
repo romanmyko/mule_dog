@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="createCase" doc:id="9fe8e13a-1509-4d79-ba68-cfb96fde71f4" >
+		<ee:transform doc:name="Transform Message Json to Java" doc:id="739e714c-446e-4730-b857-dfcb6609bceb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create type="Case" doc:name="Create" doc:id="c975b76b-65d0-439b-b20a-27f52b4ef83a" config-ref="Salesforce_Global_Config" />
+		<ee:transform doc:name="Transform Message to JSON" doc:id="68c9e1ef-5604-475e-9a43-9ed5365b5dda" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Create Case Logger" doc:id="f2e67615-4314-40dc-9463-a47ad2d8db52" message='#[output application/java&#10;---&#10;"SUCCESS: Salesforce-System-API created case to Salesforce API"]' />
+	</sub-flow>
+	<sub-flow name="createContract" doc:id="e7fffc18-783c-42ca-bc1d-7452234ff4f9" >
+		<ee:transform doc:name="Transform Message Json to Java" doc:id="6a83e0a1-7983-4dbf-b96d-7851b221b33f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ((item, index) -> 
+    item ++ {
+        StartDate: item.StartDate as Date,
+        DateCreation__c: item.DateCreation__c as Date
+    }
+)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create type="Contract" doc:name="Create" doc:id="b910ffad-2328-4a63-aa9f-07bac05951d6" config-ref="Salesforce_Global_Config" />
+		<ee:transform doc:name="Transform Message to JSON" doc:id="b6052377-f17f-4d21-9016-08554c9cce77" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Create Contract Logger" doc:id="437c76b5-b5ea-46f9-b408-f4d20d53cc26" message='#[output application/java&#10;---&#10;"SUCCESS: Salesforce-System-API created contract to Salesforce API"]' />
+	</sub-flow>
+	<sub-flow name="updateContract" doc:id="86f1975b-e1a8-494a-b7c9-cdcbc1cc47ec" >
+		<ee:transform doc:name="Transform Message Json to Java" doc:id="79dade90-c06c-4aaa-ac33-5d458763b16f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ((item, index) -> 
+    item ++ {
+        StartDate: item.StartDate as Date,
+        DateCreation__c: item.DateCreation__c as Date
+    }
+)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:update type="Contract" doc:name="Update" doc:id="26ae872d-e6a8-4fad-afed-5eb8fae4f0ed" config-ref="Salesforce_Global_Config" />
+		<ee:transform doc:name="Transform Message to JSON" doc:id="e10724bd-a3f8-4d93-b4e2-ee3458d63d81" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Create Contract Logger" doc:id="f72b06cb-5c7c-4136-937b-e78ee4f70662" message='#[output application/java&#10;---&#10;"SUCCESS: Salesforce-System-API updated contract in Salesforce API"]' />
+	</sub-flow>
+	<sub-flow name="getContractById" doc:id="3214549d-c16b-4ebf-b105-e7b1f401ba64" >
+		<ee:transform doc:name="Transform Message Json to Java" doc:id="3ac7eac6-63be-4db3-9b90-88f9821a341b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"SELECT Id, AccountId, ExternalId__c, SuccessStatus__c, DateCreation__c, Details__c, RocketName__c, NameSalesforce__c, Status, StartDate, ContractTerm FROM Contract WHERE ExternalId__c = '" ++ (attributes.uriParams.id default "5eb87cddffd86e000604b32f")  ++ "'"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:query doc:name="Query" doc:id="96e88d63-596a-4df1-87e3-2d350b2f3498" config-ref="Salesforce_Global_Config" >
+			<salesforce:salesforce-query ><![CDATA[#[payload]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<choice doc:name="Choice the Payload" doc:id="b9a61cd4-41dc-47e0-81f6-446bbe5986bf" >
+			<when expression="#[payload != null]" >
+				<ee:transform doc:name="Transform Message to JSON" doc:id="2148f49c-cfae-4cc4-bf32-54b18c2d5bfd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Contract Retrieved Logger " doc:id="5f3559f6-0ca8-4063-83bb-f69c6e5e0136" message='#[output application/java&#10;---&#10;"SUCCESS: Retrieved contract with ID: #[attributes.uriParams.id]"]' />
+			</when>
+			<otherwise >
+				<set-variable value="#[204]" doc:name="Set Status Variable" doc:id="8084f077-920e-406c-bb01-c05a01df1daf" variableName="httpStatus" />
+				<logger level="INFO" doc:name="Contract Not Found Logger " doc:id="b42ca7d6-4601-4787-bfe9-90271954d332" message='#[output application/java&#10;---&#10;"SUCCESS: Contract with #[attributes.uriParams.id] ID was not found"]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

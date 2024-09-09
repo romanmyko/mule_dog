@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-key-vault="http://www.mulesoft.org/schema/mule/azure-key-vault"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/azure-key-vault http://www.mulesoft.org/schema/mule/azure-key-vault/current/mule-azure-key-vault.xsd">
+	<sub-flow name="getLaunchpadByExternalId" doc:id="aa106e1a-7e0b-4c9c-a97c-f3fa16d46083" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#GetLaunchpadByExternalIdRequest.externalId]" doc:name="Set externalId for Launchpad" doc:id="bde62d51-638e-4932-8ae8-b2ceaea957f2" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Launchpad is not blank" doc:id="348cbe2b-eeb5-49d1-88f3-1e7270bacf05" value="#[vars.externalId]" message="externalId is blank" />
+		<db:select doc:name="Select Launchpad by externalId from db" doc:id="dd56bbf7-c757-43cf-a27b-712ada1e41a0" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[SELECT * FROM Launchpads
+WHERE externalId=:val]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Prepare Launchpad output" doc:id="85a933a3-0985-40df-a63d-3412cca81a34">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#GetLaunchpadByExternalIdResponse: {
+            id: payload[0].id,
+            externalId: payload[0].externalId,
+            name: payload[0].name,
+            locality: payload[0].locality,
+            region: payload[0].region,
+            status: payload[0].status
+        }
+    }else {soap#NoDataFoundResponse: 
+         result: "There is not any matching data for provided id."}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="caf91447-2ea9-46b2-8764-249a1d851466">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="0a63b1a6-9e87-4129-a0e1-3567db1aecc8" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="dbf608cd-4d86-40ea-96f1-18d4df18b12e" message='#[output application/java&#10;---&#10;"SUCCESS: Launchpad with externalID #[vars.externalId] was received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getLaunchByExternalId" doc:id="7c692215-7580-495e-b0dd-2fd18a632ec0" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#GetLaunchByExternalIdRequest.externalId]" doc:name="Set externalId for Launch" doc:id="02f5bc80-9f59-4368-a8d1-f073651df7c1" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Launch is not blank" doc:id="4b423ac6-82bc-4a6a-afb9-e8c25feb2183" value="#[vars.externalId]" message="externalId is blank" />
+		<db:select doc:name="Select Launch by externalId from db" doc:id="a3ec6521-8e93-43e6-a1bd-f2263d54c16e" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[SELECT * FROM Launches
+WHERE externalId=:val]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Prepare Launch output">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#GetLaunchByExternalIdResponse: {
+        id: payload[0].id,
+        externalId: payload[0].externalId,
+        success: payload[0].success,
+        details:payload[0].details,
+        launchName: payload[0].launchName,
+        date: payload[0].date,
+        rocketName: payload[0].rocketName
+        }
+    }else {soap#NoDataFoundResponse: 
+         result: "There is not any matching data for provided id."}
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<choice doc:name="Choice" doc:id="473c378b-2d2b-4f52-82a7-ad7ae6c52fb8">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="643c1d54-d15a-4b11-96ba-b088383fdd68" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="60ccee56-8868-4112-8b58-50d3658f29cf" message='#[output application/java&#10;---&#10;"SUCCESS: Launch with externalID #[vars.externalId] was received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getRocketByExternalId" doc:id="d6d47edc-3439-42fe-8fed-e20e83f628c5" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#GetRocketByExternalIdRequest.externalId]" doc:name="Set externalId for Rocket" doc:id="06525444-9653-4335-9c64-8811ba03ffc6" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Rocket is not blank" doc:id="829a7bee-c918-44ce-aaea-79a26c173c1e" value="#[vars.externalId]" message="externalId is blank" />
+		<db:select doc:name="select from Rockets by externalId" doc:id="af8784cd-f0ff-4d62-b9b4-a53ba0ecbfea" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Rockets where externalId=:val ]]></db:sql>
+			<db:input-parameters><![CDATA[#[val:vars.externalId]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Prepare Rocket output" doc:id="2508454e-5489-4791-82f8-168f46a24187">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#GetRocketByExternalIdResponse: {
+        id: payload[0].id,
+        externalId: payload[0].externalId,
+        name: payload[0].name,
+        active: payload[0].active,
+        stages: payload[0].stages,
+        costPerLaunch: payload[0].costPerLaunch,
+        description: payload[0].description
+        }
+    }else {soap#NoDataFoundResponse: 
+         result: "There is not any matching data for provided id."}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="e38a23a6-4ba7-4f4f-9f9b-e5ae926633aa">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="b4254eeb-c4a5-4c58-98a8-05c20c6a00fa" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="d7124e61-0b10-405d-b9a3-ebca2762a0ae" message='#[output application/java&#10;---&#10;"SUCCESS: Rocket with externalID #[vars.externalId] was received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getPayloadByExternalId" doc:id="dde377b3-cda1-45a1-8823-79ef4fc0e23b" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#GetPayloadByExternalIdRequest.externalId]" doc:name="Set externalId for Payload" doc:id="e39571c2-5ff4-4064-acf1-406363a63bf1" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Payload is not blank" doc:id="456359d2-6906-4ad9-a9be-65323d77ff3d" value="#[vars.externalId]" message="externalId is blank" />
+		<db:select doc:name="select from Payloads by externalId" doc:id="b84f2a92-303d-4fd2-b703-fb81b1e6a6aa" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Payloads where externalId=:val ]]></db:sql>
+			<db:input-parameters><![CDATA[#[val:vars.externalId]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Prepare Payload output" doc:id="53208f10-9c59-4141-ba29-7b3970502570">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#GetPayloadByExternalIdResponse: {
+        id: payload[0].id,
+        externalId: payload[0].externalId,
+        name: payload[0].name,
+        'type':payload[0].'type',
+        weight: payload[0].weight,
+        orbit: payload[0].orbit,
+        apoapsis: payload[0].apoapsis,
+        periapsis: payload[0].periapsis
+        }
+    }else {soap#NoDataFoundResponse: 
+         result: "There is not any matching data for provided id."}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="c1d0dbbe-f460-4baa-997e-75bb50752153">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any matching data for provided id."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="b3a4f3f0-9160-46e0-a43d-c03393bda6ec" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="def94508-fc42-4a48-8359-bdca27e978be" message='#[output application/java&#10;---&#10;"SUCCESS: Payload with externalID #[vars.externalId] was received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getAllPayloads" doc:id="3db3dac0-d0ba-4613-9502-2a403aedf70a" >
+		<db:select doc:name="select all Payloads" doc:id="fca4330e-3bc6-4a7e-82cd-d01f69f802ef" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Payloads]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Prepare Payload output" doc:id="298d9f80-6d40-4a8b-b19c-93db24f34b5d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#AllPayloadsResponse: {
+        Payload: payload map (item) -> {
+            id: item.id,
+            externalId: item.externalId,
+            name: item.name,
+            'type': item.'type',
+            weight: item.weight,
+            orbit: item.orbit,
+            apoapsis: item.apoapsis,
+            periapsis: item.periapsis
+        }
+    }}else {soap#NoDataFoundResponse: 
+         result: "There is not any data."}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="a8f71972-78a6-4db8-842d-84a694bdfc0a">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any data."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="9494bb7f-d1ba-4414-877b-d71800952ead" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="81f66b68-b777-4c75-89b5-ff04b250c0dd" message='#[output application/java&#10;---&#10;"SUCCESS: All payloads were received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getAllRockets" doc:id="7a61a9eb-fc1d-451a-ac6e-6c93833c37a7" >
+		<db:select doc:name="select all Rockets" doc:id="96849e4e-f470-4d73-97f4-c744ba49280c" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Rockets]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Prepare Rocket output" doc:id="cfffafd9-6439-49d1-806d-014399ac898a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#AllRocketsResponse: {
+        Rocket: payload map (item, index) -> {
+        id: item.id,
+        externalId: item.externalId,
+        name: item.name,
+        active: item.active,
+        stages: item.stages,
+        costPerLaunch: item.costPerLaunch,
+        description: item.description
+        }
+    }}else {soap#NoDataFoundResponse: 
+         result: "There is not any data."}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="5e802b08-448b-4bed-bc4f-7da06e4cd3d3">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any data."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="9aa34bba-8df4-46db-8f65-f761073eebdd" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="b32d8cfc-ff39-46c2-b5f1-d161e240e79f" message='#[output application/java&#10;---&#10;"SUCCESS: All rockets were received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getAllLaunches" doc:id="6e2ef4cd-e0d2-49b2-84fc-55b1e3dcc360" >
+		<db:select doc:name="select all Launches" doc:id="86cfc21f-7cd3-4f5c-ac03-bf35af9d63b9" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Launches]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Prepare Launch output" doc:id="b3522b59-5e99-4977-aa8b-41ac3987ee7e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#AllLaunchesResponse: {
+        Launch: payload map (item, index) -> {
+        id: item.id,
+        externalId: item.externalId,
+        success: item.success,
+        details: item.details,
+        launchName: item.launchName,
+        date: item.date,
+        rocketName: item.rocketName
+        }
+    }}else {soap#NoDataFoundResponse: 
+         result: "There is not any data."}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="f95311f8-7bfa-4e89-aae5-039c48c1d6e4">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any data."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="6a25db05-3f9a-402b-878e-bc81c742fcd7" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="25eb0502-9b09-4895-887b-e1f8d7123a51" message='#[output application/java&#10;---&#10;"SUCCESS: All launches were received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="getAllLaunchpads" doc:id="360fd132-b8cd-4655-b99c-62c1b40a0330" >
+		<db:select doc:name="select all Launchpads" doc:id="346445a3-adf0-44c1-94c7-88fb76dc8116" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[select * from Launchpads]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Prepare Launchpads output" doc:id="395fe590-931e-4c90-bb55-75589341ce2f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://example.com/rocketservice
+ns soap http://schemas.xmlsoap.org/soap/envelope/
+---
+    if (payload != null and sizeOf(payload) > 0)
+    {
+      soap#AllLaunchpadsResponse: {
+        Launchpad: payload map(item, index) -> {
+            id: item.id,
+            externalId: item.externalId,
+            name: item.name,
+            locality: item.locality,
+            region: item.region,
+            status: item.status
+        }
+    }}else {soap#NoDataFoundResponse: 
+         result: "There is not any data."}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="e459f6de-9541-4b6a-b1b1-5d2330fa4215">
+			<when expression='#[%dw 2.0&#10;ns ns0 http://schemas.xmlsoap.org/soap/envelope/&#10;---&#10;payload.ns0#NoDataFoundResponse.result == "There is not any data."]'>
+				<logger level="INFO" doc:name="Logger" doc:id="cb0966c2-51c4-485a-a24c-ec5a1816e7b0" message='#[output application/java&#10;---&#10;"SUCCESS: No result for provided id."]' />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="b69c1673-9783-4302-b7ba-e2742539b558" message='#[output application/java&#10;---&#10;"SUCCESS: All launchpads were received."]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="createLauncpad" doc:id="d9265104-b7bf-4278-b2b5-bdcff2e5a054" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="c491ea1d-ea6c-4e4f-85a0-59678e646d4e">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#CreateLaunchpadRequest.externalId]]></ee:set-variable>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of input xml for creating Launchpad " doc:id="0d862750-e283-46ed-bcc4-ed171bf5b7a6" config-ref="XML_Config" schemas="schemasCreateLaunchpad\schema0.xsd, schemasCreateLaunchpad\schema1.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:insert doc:name="Create Launchpad in db" doc:id="178d18f0-e9b3-4e58-91d0-7e0c9455fce2" autoGenerateKeys="true" autoGeneratedKeysColumnNames="#[['id']]" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[INSERT INTO Launchpads (externalId, name, locality, region, status) 
+VALUES (:externalId, :name, :locality, :region, :status);]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+ns ns0 http://example.com/rocketservice
+---
+vars.dataXml.root.body.ns0#CreateLaunchpadRequest]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Successfull create message for user">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Created successfully"
+        }
+    }
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="876b1d7c-1271-4cab-8707-20f74519d29f" message='#[output application/java&#10;---&#10;"SUCCESS: Launchpad with externalID #[vars.externalId] was created."]' />
+	</sub-flow>
+	<sub-flow name="createLaunch" doc:id="100e20d2-da5e-49a8-845a-4e714d92dc2b" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="0f3a0541-2c02-442e-8927-8d79fe7bfa02">
+            <ee:message>
+            </ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#CreateLaunchRequest.externalId]]></ee:set-variable>
+				<ee:set-variable variableName="dataXML"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of input xml for creating Launch" doc:id="f63db7f8-ae8d-4bdc-a527-2ed06df9be21" config-ref="XML_Config" schemas="schemasCreateLaunch\schema0.xsd, schemasCreateLaunch\schema1.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXML]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:insert doc:name="Create Launch in db" doc:id="9049c0e8-aacc-4c80-b2eb-d120986848c3" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[INSERT INTO Launches (externalId, success, details, launchName, date, rocketName) 
+VALUES (:externalId, :success, :details, :launchName, :date, :rocketName);]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: vars.dataXML.root.body.ns0#CreateLaunchRequest.externalId,
+    success: if (vars.dataXML.root.body.ns0#CreateLaunchRequest.success as String == "1" or vars.dataXML.root.body.ns0#CreateLaunchRequest.success as String == "true") 1 else 0,
+    details: vars.dataXML.root.body.ns0#CreateLaunchRequest.details,
+    launchName: vars.dataXML.root.body.ns0#CreateLaunchRequest.launchName,
+    date: vars.dataXML.root.body.ns0#CreateLaunchRequest.date,
+    rocketName: vars.dataXML.root.body.ns0#CreateLaunchRequest.rocketName
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Successfull create message for user" doc:id="541889e6-35a3-46eb-b830-be155a287d34">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Created successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="acb080df-4765-48ac-adab-b3949da0491a" message='#[output application/java&#10;---&#10;"SUCCESS: Launch with externalID #[vars.externalId] was created."]' />
+	</sub-flow>
+	<sub-flow name="createRocket" doc:id="6b5747b9-0222-4e2b-a1ac-219c5bbdf328" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="6a2e0ee8-5828-4de8-a534-354324e8dfb4">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#CreateRocketRequest.externalId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of input xml for creating Rocket" doc:id="e2077bd7-3996-4201-b1db-d9c901cb7af2" config-ref="XML_Config" schemas="schemasCreateRocket\schema0.xsd, schemasCreateRocket\schema1.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:insert doc:name="Create Rocket in db" doc:id="ae22cc45-d804-44b3-b79a-c016b206f0aa" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[INSERT INTO Rockets (externalId, name, active, stages, costPerLaunch, description) 
+VALUES (:externalId, :name, :active, :stages, :costPerLaunch, :description);]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+ns ns0 http://example.com/rocketservice
+var rocketRequest = vars.dataXml.root.body.ns0#CreateRocketRequest
+---
+{
+    externalId: rocketRequest.externalId,
+    name: rocketRequest.name,
+    active: if (rocketRequest.active as String == "1" or rocketRequest.active as String == "true" ) 1 else 0,
+    stages: rocketRequest.stages,
+    costPerLaunch: rocketRequest.costPerLaunch,
+    description: rocketRequest.description
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Successfull create message for user" doc:id="4130a2ca-8595-47f6-bf95-e9ad1aac86a3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Created successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d069aff4-7f23-44b7-ac9b-6d203345f8a5" message='#[output application/java&#10;---&#10;"SUCCESS: Rocket with externalID #[vars.externalId] was created."]' />
+	</sub-flow>
+	<sub-flow name="createPayload" doc:id="9c0dc901-db5f-44f9-8a57-570593e56d45" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="cf5c2f70-efa2-4e78-a823-425eef682f97">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#CreatePayloadRequest.externalId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of input xml for creating Payload" doc:id="3313e894-772a-40a9-ac28-fdbb03af03ca" config-ref="XML_Config" schemas="schemasCreatePayload\schema0.xsd, schemasCreatePayload\schema1.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:insert doc:name="Create Payload in db" doc:id="85375b8a-40d5-41d3-ad9f-770872ef6125" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[INSERT INTO Payloads (externalId, name, type, weight, orbit, apoapsis, periapsis) 
+VALUES (:externalId, :name, :type, :weight, :orbit, :apoapsis, :periapsis);]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+ns ns0 http://example.com/rocketservice
+---
+vars.dataXml.root.body.ns0#CreatePayloadRequest]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Successfull create message for user" doc:id="da34ac51-3a07-413f-901f-1e9d447f9533">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Created successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fbc6cfad-b08a-42b7-95a4-91e3ac3c7a4e" message='#[output application/java&#10;---&#10;"SUCCESS: Payload with externalID #[vars.externalId] was created."]' />
+	</sub-flow>
+	<sub-flow name="updateLaunchpad" doc:id="7dc26025-36ab-4d45-b013-3d54e046520b" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="8860ec72-8924-4c9e-8e0a-e7c6e88442fc">
+            <ee:message>
+            </ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#UpdateLaunchpadRequest.externalId]]></ee:set-variable>
+				<ee:set-variable variableName="dataJSON"><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: payload.body.ns0#UpdateLaunchpadRequest.externalId,
+    name: payload.body.ns0#UpdateLaunchpadRequest.name default null,
+    locality: payload.body.ns0#UpdateLaunchpadRequest.locality default null,
+    region: payload.body.ns0#UpdateLaunchpadRequest.region default null,
+    status: payload.body.ns0#UpdateLaunchpadRequest.status default null
+}]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of update Launchpad input xml" doc:id="91c05dc3-1fc9-4f31-b75a-997a6bbb7c71" config-ref="XML_Config" schemas="schemasUpdateLaunchpad\schema0.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:update doc:name="Update Launchpad in db" doc:id="dcbc7c6e-1451-4974-b208-bfeec80e6feb" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[UPDATE Launchpads
+SET
+    name = CASE WHEN :name IS NOT NULL THEN :name ELSE name END,
+    locality = CASE WHEN :locality IS NOT NULL THEN :locality ELSE locality END,
+    region = CASE WHEN :region IS NOT NULL THEN :region ELSE region END,
+    status = CASE WHEN :status IS NOT NULL THEN :status ELSE status END
+WHERE externalId = :externalId;]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+output application/java
+---
+{	externalId: vars.dataJSON.externalId,
+    name: vars.dataJSON.name,
+    locality: vars.dataJSON.locality,
+    region: vars.dataJSON.region,
+    status: vars.dataJSON.status
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Successfull update message for user" doc:id="520ed29e-d036-42ec-88d3-9063d275140b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Updated successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9fc85fa7-2cd0-492a-bdc9-c9fa3e5bc948" message='#[output application/java&#10;---&#10;"SUCCESS: Launchpad with externalID #[vars.externalId] was updated."]' />
+	</sub-flow>
+	<sub-flow name="updateLaunch" doc:id="48d6282d-8fef-4e1b-af39-8dc18644a53f" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="c2b10157-bd75-47d3-bb72-426e698ec77e">
+            <ee:message>
+            </ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#UpdateLaunchRequest.externalId]]></ee:set-variable>
+				<ee:set-variable variableName="dataJSON"><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: payload.body.ns0#UpdateLaunchRequest.externalId,
+    success: payload.body.ns0#UpdateLaunchRequest.success default null,
+    details: payload.body.ns0#UpdateLaunchRequest.details default null,
+    launchName: payload.body.ns0#UpdateLaunchRequest.launchName default null,
+    date: payload.body.ns0#UpdateLaunchRequest.date default null,
+    rocketName: payload.body.ns0#UpdateLaunchRequest.rocketName default null
+}]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of update Launch input xml" doc:id="e0cd7866-0853-4ad3-8f8f-899bab748f5e" schemas="schemasUpdateLaunch\schema0.xsd" config-ref="XML_Config">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:update doc:name="Update Launch in db" doc:id="306fab40-46a8-479e-b69e-9eece709c3c1" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[UPDATE Launches
+SET
+    success = CASE WHEN :success IS NOT NULL THEN :success ELSE success END,
+    details = CASE WHEN :details IS NOT NULL THEN :details ELSE details END,
+    launchName = CASE WHEN :launchName IS NOT NULL THEN :launchName ELSE launchName END,
+    date = CASE WHEN :date IS NOT NULL THEN :date ELSE date END,
+    rocketName = CASE WHEN :rocketName IS NOT NULL THEN :rocketName ELSE rocketName END
+WHERE externalId = :externalId;]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+    externalId: vars.dataJSON.externalId,
+    success: if (vars.dataJSON.success != null) 
+                if (vars.dataJSON.success as String == "1" or vars.dataJSON.success as String == "true") 1 else 0 
+            else null,
+    details: vars.dataJSON.details,
+    launchName: vars.dataJSON.launchName,
+    date: vars.dataJSON.date,
+    rocketName: vars.dataJSON.rocketName,
+    description: vars.dataJSON.description
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Successfull update message for user" doc:id="2185fa2d-84df-4a22-99ed-32ecc862e049">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Updated successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d24a2086-1f1f-4d2f-8244-a566cf30b529" message='#[output application/java&#10;---&#10;"SUCCESS: Launch with externalID #[vars.externalId] was updated."]' />
+	</sub-flow>
+	<sub-flow name="updateRocket" doc:id="915340c3-4b76-48ce-b6ee-24d0ce95179d" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="173ad297-8eea-4396-b586-240a11d756c5">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#UpdateRocketRequest.externalId
+
+]]></ee:set-variable>
+				<ee:set-variable variableName="dataJSON"><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: payload.body.ns0#UpdateRocketRequest.externalId,
+    name: payload.body.ns0#UpdateRocketRequest.name default null,
+    active: payload.body.ns0#UpdateRocketRequest.active default null,
+    stages: payload.body.ns0#UpdateRocketRequest.stages default null,
+    costPerLaunch: payload.body.ns0#UpdateRocketRequest.costPerLaunch default null,
+    description: payload.body.ns0#UpdateRocketRequest.description default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of update Rocket input xml" doc:id="b6cc70a8-2921-4517-8975-1f1c92737ec3" config-ref="XML_Config" schemas="schemasUpdateRocket\schema0.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:update doc:name="Update Rocket in db" doc:id="9307d905-c85b-4f11-ab90-ec72ec1a7180" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[UPDATE Rockets
+SET
+    name = CASE WHEN :name IS NOT NULL THEN :name ELSE name END,
+    active = CASE WHEN :active IS NOT NULL THEN :active ELSE active END,
+    stages = CASE WHEN :stages IS NOT NULL THEN :stages ELSE stages END,
+    costPerLaunch = CASE WHEN :costPerLaunch IS NOT NULL THEN :costPerLaunch ELSE costPerLaunch END,
+    description = CASE WHEN :description IS NOT NULL THEN :description ELSE description END
+WHERE externalId = :externalId;]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+    externalId: vars.dataJSON.externalId,
+    name: vars.dataJSON.name,
+    active:if (vars.dataJSON.active != null) 
+                if (vars.dataJSON.active as String == "1" or vars.dataJSON.active as String == "true") 1 else 0 
+            else null,
+    stages: vars.dataJSON.stages,
+    costPerLaunch: vars.dataJSON.costPerLaunch,
+    description: vars.dataJSON.description
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Successfull update message for user" doc:id="9e7d1017-2b5f-4092-91f8-fa55b6b520ff">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Updated successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="1b3bb13e-0721-46ad-bb50-ee55623a34ab" message='#[output application/java&#10;---&#10;"SUCCESS: Rocket with externalID #[vars.externalId] was updated."]' />
+	</sub-flow>
+	<sub-flow name="updatePayload" doc:id="ee5b6596-d7e7-45e1-be90-5070bb7d8bf1" >
+		<ee:transform doc:name="Prepare SOAP request body" doc:id="4a7f2240-aaee-4d18-8d10-baf6b727c5ea">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dataXml"><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+root: payload]]></ee:set-variable>
+				<ee:set-variable variableName="externalId"><![CDATA[ns ns0 http://example.com/rocketservice
+---
+payload.body.ns0#UpdatePayloadRequest.externalId]]></ee:set-variable>
+				<ee:set-variable variableName="dataJSON"><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: payload.body.ns0#UpdatePayloadRequest.externalId,
+    name: payload.body.ns0#UpdatePayloadRequest.name default null,
+    'type': payload.body.ns0#UpdatePayloadRequest.'type' default null,
+    weight: payload.body.ns0#UpdatePayloadRequest.weight default null,
+    orbit: payload.body.ns0#UpdatePayloadRequest.orbit default null,
+    apoapsis: payload.body.ns0#UpdatePayloadRequest.apoapsis default null,
+   	periapsis: payload.body.ns0#UpdatePayloadRequest.periapsis default null
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<xml-module:validate-schema doc:name="Validate schema of update Payload input xml" doc:id="c7b01a2f-5d64-427c-adf7-738b1a4996e8" config-ref="XML_Config" schemas="schemasUpdatePayload\schema0.xsd">
+			<xml-module:content><![CDATA[#[vars.dataXml]]]></xml-module:content>
+		</xml-module:validate-schema>
+		<db:update doc:name="Update Launch in db" doc:id="91dea8d7-0a88-452d-b96d-2ee0764806a1" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[UPDATE Payloads
+SET 
+    name = CASE WHEN :name IS NOT NULL THEN :name ELSE name END,
+    type = CASE WHEN :type IS NOT NULL THEN :type ELSE type END,
+    weight = CASE WHEN :weight IS NOT NULL THEN :weight ELSE weight END,
+    orbit = CASE WHEN :orbit IS NOT NULL THEN :orbit ELSE orbit END,
+    apoapsis = CASE WHEN :apoapsis IS NOT NULL THEN :apoapsis ELSE apoapsis END,
+    periapsis = CASE WHEN :periapsis IS NOT NULL THEN :periapsis ELSE periapsis END
+WHERE externalId = :externalId;]]></db:sql>
+			<db:input-parameters><![CDATA[#[output application/java
+ns ns0 http://example.com/rocketservice
+---
+{
+    externalId: vars.dataJSON.externalId,
+    name: vars.dataJSON.name,
+    'type': vars.dataJSON.'type',
+    weight: vars.dataJSON.weight,
+    orbit: vars.dataJSON.orbit,
+    apoapsis: vars.dataJSON.apoapsis,
+    periapsis: vars.dataJSON.periapsis
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Successfull update message for user" doc:id="b0b16d3d-c461-4084-b515-6e6e82994d8c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Updated successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fba2c45d-178f-42bb-806f-30eebb7ee668" message='#[output application/java&#10;---&#10;"SUCCESS: Payload with externalID #[vars.externalId] was updated."]' />
+	</sub-flow>
+	<sub-flow name="deleteLaunchpadByExternalId" doc:id="ccd63765-9dc7-4a71-9565-6677872ecbe5" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#DeleteLaunchpadByExternalIdRequest.externalId]" doc:name="Set externalId for Launchpad" doc:id="a59749cb-7d4f-4bfc-b936-1916241c9082" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Launchpad is not blank" doc:id="cb36daa9-27f1-4329-afa4-d56a44ef5028" value="#[vars.externalId]" message="externalId is blank" />
+		<db:delete doc:name="Delete Launchpad by externalId from db" doc:id="9765a9fa-a0c0-4753-8887-f08b3062619f" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[DELETE FROM Launchpads 
+WHERE externalId=:val;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Successfull delete message for user">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Deleted successfully"
+        }
+    }
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a233209f-b268-4609-b0af-37268d035634" message='#[output application/java&#10;---&#10;"SUCCESS: Launchpad with externalID #[vars.externalId] was deleted."]' />
+	</sub-flow>
+	<sub-flow name="deleteLaunchByExternalId" doc:id="b2be9080-4202-46f2-bd04-c6796813a8e9" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#DeleteLaunchByExternalIdRequest.externalId]" doc:name="Set externalId for Launch" doc:id="f1e550aa-4237-4a9e-baf6-18067942c30f" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Launch is not blank" doc:id="f5cd2b02-71e1-419d-8f62-82c218c95d4e" value="#[vars.externalId]" message="externalId is blank" />
+		<db:delete doc:name="Delete Launch by externalId from db" doc:id="9fc82235-0b3b-4b47-9c91-a499bae26595" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[DELETE FROM Launches 
+WHERE externalId=:val;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Successfull delete message for user">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Deleted successfully"
+        }
+    }
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6d365543-779c-45b1-98e2-5fcb0a21c70d" message='#[output application/java&#10;---&#10;"SUCCESS: Launch with externalID #[vars.externalId] was deleted."]' />
+	</sub-flow>
+	<sub-flow name="deleteRocketByExternalId" doc:id="f94c4593-124a-4ed5-a907-a3f186b43b70" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#DeleteRocketByExternalIdRequest.externalId]" doc:name="Set externalId for Rocket" doc:id="312cfd6c-f9da-4bd6-8a82-c4df9c821e5f" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Rocket is not blank" doc:id="ece3da41-ea02-41c2-833c-f6b4d57b349c" value="#[vars.externalId]" message="externalId is blank" />
+		<db:delete doc:name="Delete Rocket by externalId from db" doc:id="2d8ff3a2-6412-4966-b9a0-5559a9a8209c" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[DELETE FROM Rockets 
+WHERE externalId=:val;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Successfull delete message for user" doc:id="e25cc538-f060-4c67-be73-30f9560fb8ac">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Deleted successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="230bcdcb-1a8f-4673-97c3-f1147a71ecac" message='#[output application/java&#10;---&#10;"SUCCESS: Rocket with externalID #[vars.externalId] was deleted."]' />
+	</sub-flow>
+	<sub-flow name="deletePayloadByExternalId" doc:id="8b45aa95-ac46-4616-9ac3-632dbfc4a295" >
+		<set-variable value="#[ns ns0 http://example.com/rocketservice&#10;---&#10;payload.body.ns0#DeletePayloadByExternalIdRequest.externalId]" doc:name="Set externalId for Payload" doc:id="e3614065-2d79-4d2f-ada9-2d1c5c25d294" variableName="externalId" />
+		<validation:is-not-blank-string doc:name="Check externalId for Payload is not blank" doc:id="04e449bc-a90f-4e27-bb30-dd1ffbd21048" value="#[vars.externalId]" message="externalId is blank" />
+		<db:delete doc:name="Delete Payload by externalId from db" doc:id="808deca5-60b9-469b-b88c-eb9a85ec6bcc" config-ref="Database_Config_New_DB">
+			<db:sql><![CDATA[DELETE FROM Payloads
+WHERE externalId=:val;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{val: vars.externalId}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Successfull delete message for user" doc:id="ab4ad386-1a78-44b0-9c8d-31df2fd8b88f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns soap http://schemas.xmlsoap.org/soap/envelope
+---
+{
+        soap#Result: {
+            message: "Deleted successfully"
+        }
+    }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="36906c75-9538-4df1-b600-389e6fb9571a" message='#[output application/java&#10;---&#10;"SUCCESS: Payload with externalID #[vars.externalId] was deleted."]' />
+	</sub-flow>
+	
+</mule>

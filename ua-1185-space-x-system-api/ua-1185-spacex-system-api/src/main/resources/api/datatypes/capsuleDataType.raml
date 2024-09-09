@@ -1,0 +1,34 @@
+#%RAML 1.0 DataType
+
+displayName: Capsules
+description: Defines the fields in Capsule Datatype
+
+type: object
+properties:
+  reuse_count: 
+    type: number
+    default: 0
+  water_landings:
+    type: number
+    default: 0
+  land_landings: 
+    type: number
+    default: 0
+  last_update:
+    type: string
+    default: null 
+  launches:
+    type: array
+    items: string
+  serial:
+    type: string
+    required: true
+  status: 
+    type: string
+    enum: ["unknown", "active", "retired", "destroyed"]
+    required: true
+  type:
+    type: string
+    enum: ["Dragon 1.0", "Dragon 1.1", "Dragon 2.0"]
+    required: true
+  id: string

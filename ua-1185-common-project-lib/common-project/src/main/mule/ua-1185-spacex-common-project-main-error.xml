@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="ua-1185-spacex-common-project-mail-Error_Handler" doc:id="6406c846-5f0e-4993-830f-34594ad6cead" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate ANY" doc:id="65af79e2-7b4f-4b56-a46b-5dd61bb1633b" type="ANY">
+			<set-variable value="Error:  Common project. Mail sender" doc:name="Set Variable mailErrorLog" doc:id="50376f95-db82-4811-96aa-7c9e9a7c6ec6" variableName="mailErrorLog" />
+			<logger level="ERROR" doc:name="mail connector errorLog" doc:id="cace498d-8633-4ccd-8c23-f483407c5f55" message="#[%dw 2.0&#10;output application/java&#10;---&#10;vars.mailErrorLog]" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="ua-1185-spacex-common-project-salesforce-Error_Handler" doc:id="5c6a4234-a771-4766-b4d4-55547ac53cd2" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate ANY" doc:id="eb41f666-9ca6-4e13-8772-f29205b95f22" type="ANY">
+			<set-variable value="Error:  Common project. Salesforce sender" doc:name="Set Variable salesforceErrorLog" doc:id="8720f227-b4a0-4d85-a533-59b1ed6db6c1" variableName="salesforceErrorLog" />
+			<logger level="ERROR" doc:name="mail connector errorLog" doc:id="bfdd407f-3e75-40f5-95f8-7d843dcb0d08" message="#[%dw 2.0&#10;output application/java&#10;---&#10;vars.salesforceErrorLog]" />
+		</on-error-propagate>
+	</error-handler>
+</mule>
